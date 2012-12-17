@@ -1,3 +1,8 @@
+# Closure Compiler
+# 
+# To compile, get the script from http://closure-compiler.googlecode.com/files/compiler-latest.zip
+# And put it into ~/.local or change the path below
+
 FILENAME="out.js"
 
 ls -l $FILENAME
