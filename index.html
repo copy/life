@@ -10,167 +10,167 @@
 </head>
 <body>
 <div id="toolbar" style="display: none;">
-	<div class="button" id="about_button">about</div>
-	<div class="menu" id="examples_menu">
-		<div>examples</div>
-		<div id="more_button">more ...</div>
-	</div>
-	<div id="import_button" class="button">import</div>
-	<div class="button" id="settings_button">settings</div>
-	<div class="button" id="zoomout_button">-</div>
-	<div class="button" id="zoomin_button">+</div>
-	<div class="button" id="clear_button">clear</div>
-	<div class="button" id="superstep_button">superstep</div>
-	<div class="button" id="step_button">step</div>
-	<div class="button" id="rewind_button">rewind</div>
-	<div class="button" id="run_button">run</div>
+    <div class="button" id="about_button">about</div>
+    <div class="menu" id="examples_menu">
+        <div>examples</div>
+        <div id="more_button">more ...</div>
+    </div>
+    <div id="import_button" class="button">import</div>
+    <div class="button" id="settings_button">settings</div>
+    <div class="button" id="zoomout_button">-</div>
+    <div class="button" id="zoomin_button">+</div>
+    <div class="button" id="clear_button">clear</div>
+    <div class="button" id="superstep_button">superstep</div>
+    <div class="button" id="step_button">step</div>
+    <div class="button" id="rewind_button">rewind</div>
+    <div class="button" id="run_button">run</div>
 </div>
 <div id="statusbar" style="display: none;">
-	<div id="label_zoom" title="zoom"></div>
-	<div id="label_mou" title="mouse coordinates">0, 0</div>
-	<div id="label_fps" title="frames per second">...</div>
-	<div id="label_gen" title="generation">0</div>
-	<div id="label_pop" title="population">0</div>
-	<span id="pattern_name"></span>
+    <div id="label_zoom" title="zoom"></div>
+    <div id="label_mou" title="mouse coordinates">0, 0</div>
+    <div id="label_fps" title="frames per second">...</div>
+    <div id="label_gen" title="generation">0</div>
+    <div id="label_pop" title="population">0</div>
+    <span id="pattern_name"></span>
 </div>
 <div id="overlay">
-	<div id="about">
-		<h1>Conway's Game of Life in Javacript</h1>
-		This is an implementation of Conway's Game of Life or
-		more precisely, the <a href="http://en.wikipedia.org/wiki/Hashlife" target="_blank">Hashlife</a>-algorithm,
-		written in Javascript using the canvas-tag.<br>
-		<br>
-		It's probably the most feature-rich Game of Life that ever ran in your browser, featuring an unbound universe, a super-fast
-		step mode and a whole bunch of examples.
-		You can import patterns, change the interface, set custom rules, etc.<br>
-		<br> 
-		Technical details or the source may be published in the future.<br>
-		<br>
-		If you encounter any bugs or have feedback, you can contact me at <a href="?pattern=email">this email</a>.<br>
-		<br>
-		<br>
-		<div id="notice">
-			<h4>Sorry, this page needs Javascript to work properly.</h4>
-			<img src="error.png" alt="gosper glider gun">
-			<br>
-			<br>
-			Maybe you want to see some <a href="/">other things</a>.
-		</div>
-		<span class="button2" id="about_close" style="display: none">ok</span>
-	</div>
-	<div id="import_dialog" style="display: none;">
-		Supports RLE, Life 1.06, Plaintext        
-		<br>
-		<br>
-		<textarea id="import_text"></textarea>
-		<br>
-		<div id="import_info"></div>
-		<br>
-		<br>
-		<span id="import_submit" class="button2">import</span>
-		<span id="import_abort" class="button2">abort</span>
-	</div>
-	<div id="alert" style="display: none;">
-		<div id="alert_text">
-			<strong id="pattern_title"></strong>
-			<br>
-			<br>
-			<div id="pattern_description"></div>
-			<a id="pattern_url" target="_blank"></a>
-			<br>
-			<br>
-			<div id="pattern_link"></div>
-		</div>
-		<br>
-		<br>
-		<span class="button2" id="alert_close">ok</span>
-	</div>
-	<div id="pattern_chooser" style="display: none;">
-		Source: <a href="http://www.conwaylife.com/wiki/Main_Page" target="_blank">www.conwaylife.com</a>. Thanks!
-		<br>
-		<br>
-		<div id="pattern_list"></div>
-		<br>
-		<br>
-		<span class="button2" id="pattern_close">close</span>
-	</div>
-	<div id="settings_dialog" style="display: none;">
-		<div class="left" id="select_rules">
-			Rule<br>
-			<small>
-				Or pick one: 
-				<span class="link" data-rule="23/3">Conway</span>
-				<span class="link" data-rule="23/36">HighLife</span>
-				<span class="link" data-rule="125/36">2x2</span>
-				<span class="link" data-rule="1357/1357">Replicator</span>
-			</small>
-		</div>
-		<div class="right">
-			<input type="text" id="rule">
-		</div>
-		<br class="clear">
-		<br>
-		<div class="left">
-			Maximum fps
-		</div>
-		<div class="right">
-			<input type="text" id="max_fps" style="width: 60px">
-		</div>
-		<br class="clear">
-		<br>
-		<div class="left">
-			Generation step<br>
-			<small>Only powers of 2 (will be rounded)</small>
-		</div>
-		<div class="right">
-			<input type="text" id="gen_step" style="width: 60px">
-		</div>
-		<br class="clear">
-		<br>
-		<div class="left">
-			Border width<br>
-			<small>0 .. 0.5</small>
-		</div>
-		<div class="right">
-			<input type="text" id="border_width" style="width: 60px">
-		</div>
-		<br class="clear">
-		<br>
-		<hr>
-		<br>
-		Color formats are <b>#5FF</b> or <b>#55FFFF</b>.
-		<br class="clear">
-		<br>
-		<div class="left">
-			Cell color
-		</div>
-		<div class="right">
-			<input type="text" id="cell_color">
-		</div>
-		<br class="clear">
-		<br>
-		<div class="left">
-			Background color
-		</div>
-		<div class="right">
-			<input type="text" id="background_color">
-		</div>
-		<br class="clear">
-		<br>
-		<div class="left">
-			Border color
-		</div>
-		<div class="right">
-			<input type="text" id="border_color">
-		</div>
-		<br class="clear">
-		<br>
-		<hr>
-		<br>
-		<span id="settings_submit" class="button2">save</span>
-		<span id="settings_reset" class="button2">reset</span>
-		<span id="settings_abort" class="button2">abort</span>
-	</div>
+    <div id="about">
+        <h1>Conway's Game of Life in Javacript</h1>
+        This is an implementation of Conway's Game of Life or
+        more precisely, the <a href="http://en.wikipedia.org/wiki/Hashlife" target="_blank">Hashlife</a>-algorithm,
+        written in Javascript using the canvas-tag.<br>
+        <br>
+        It's probably the most feature-rich Game of Life that ever ran in your browser, featuring an unbound universe, a super-fast
+        step mode and a whole bunch of examples.
+        You can import patterns, change the interface, set custom rules, etc.<br>
+        <br> 
+        Technical details or the source may be published in the future.<br>
+        <br>
+        If you encounter any bugs or have feedback, you can contact me at <a href="?pattern=email">this email</a>.<br>
+        <br>
+        <br>
+        <div id="notice">
+            <h4>Sorry, this page needs Javascript to work properly.</h4>
+            <img src="error.png" alt="gosper glider gun">
+            <br>
+            <br>
+            Maybe you want to see some <a href="/">other things</a>.
+        </div>
+        <span class="button2" id="about_close" style="display: none">ok</span>
+    </div>
+    <div id="import_dialog" style="display: none;">
+        Supports RLE, Life 1.06, Plaintext        
+        <br>
+        <br>
+        <textarea id="import_text"></textarea>
+        <br>
+        <div id="import_info"></div>
+        <br>
+        <br>
+        <span id="import_submit" class="button2">import</span>
+        <span id="import_abort" class="button2">abort</span>
+    </div>
+    <div id="alert" style="display: none;">
+        <div id="alert_text">
+            <strong id="pattern_title"></strong>
+            <br>
+            <br>
+            <div id="pattern_description"></div>
+            <a id="pattern_url" target="_blank"></a>
+            <br>
+            <br>
+            <div id="pattern_link"></div>
+        </div>
+        <br>
+        <br>
+        <span class="button2" id="alert_close">ok</span>
+    </div>
+    <div id="pattern_chooser" style="display: none;">
+        Source: <a href="http://www.conwaylife.com/wiki/Main_Page" target="_blank">www.conwaylife.com</a>. Thanks!
+        <br>
+        <br>
+        <div id="pattern_list"></div>
+        <br>
+        <br>
+        <span class="button2" id="pattern_close">close</span>
+    </div>
+    <div id="settings_dialog" style="display: none;">
+        <div class="left" id="select_rules">
+            Rule<br>
+            <small>
+                Or pick one: 
+                <span class="link" data-rule="23/3">Conway</span>
+                <span class="link" data-rule="23/36">HighLife</span>
+                <span class="link" data-rule="125/36">2x2</span>
+                <span class="link" data-rule="1357/1357">Replicator</span>
+            </small>
+        </div>
+        <div class="right">
+            <input type="text" id="rule">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Maximum fps
+        </div>
+        <div class="right">
+            <input type="text" id="max_fps" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Generation step<br>
+            <small>Only powers of 2 (will be rounded)</small>
+        </div>
+        <div class="right">
+            <input type="text" id="gen_step" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Border width<br>
+            <small>0 .. 0.5</small>
+        </div>
+        <div class="right">
+            <input type="text" id="border_width" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <hr>
+        <br>
+        Color formats are <b>#5FF</b> or <b>#55FFFF</b>.
+        <br class="clear">
+        <br>
+        <div class="left">
+            Cell color
+        </div>
+        <div class="right">
+            <input type="text" id="cell_color">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Background color
+        </div>
+        <div class="right">
+            <input type="text" id="background_color">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Border color
+        </div>
+        <div class="right">
+            <input type="text" id="border_color">
+        </div>
+        <br class="clear">
+        <br>
+        <hr>
+        <br>
+        <span id="settings_submit" class="button2">save</span>
+        <span id="settings_reset" class="button2">reset</span>
+        <span id="settings_abort" class="button2">abort</span>
+    </div>
 </div>
 </body>
 </html>
