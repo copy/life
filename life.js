@@ -24,7 +24,7 @@ function LifeUniverse()
 
         life = this;
 
-    // current rule setting, 23/3 by default
+    // current rule setting
     /** @type {number} */
     this.rule_b = 0;
     /** @type {number} */
@@ -47,6 +47,7 @@ function LifeUniverse()
     this.clear_pattern = clear_pattern;
     this.make_center = make_center;
     this.setup_field = setup_field;
+    this.move_field = move_field;
     this.setup_meta = setup_meta;
     this.set_step = set_step;
     this.set_rules = set_rules;
@@ -97,6 +98,7 @@ function LifeUniverse()
             field.push({ x: x, y: y });
         }
     };
+
 
     /**
      * @constructor
@@ -312,7 +314,7 @@ function LifeUniverse()
             {
                 return this.quick_cache = this.level2_next();
             }
-            
+
             var nw = this.nw,
                 ne = this.ne,
                 sw = this.sw,
@@ -572,7 +574,12 @@ function LifeUniverse()
     {
         if(!field.length)
         {
-            return [0, 0, 0, 0];
+            return {
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0
+            };
         }
 
         var bounds = {
@@ -610,6 +617,10 @@ function LifeUniverse()
         return bounds;
     }
 
+    /*
+     * given a point { x, y } or a bounds object { left, top, bottom, right },
+     * return the quadtree level that is required to contain this point
+     */
     function get_level_from_bounds(bounds)
     {
         // root should always be at least level 3
@@ -721,20 +732,26 @@ function LifeUniverse()
      */
     function make_center(field, bounds)
     {
-        var len = field.length,
-            offset_x = Math.round((bounds.left - bounds.right) / 2) - bounds.left,
+        var offset_x = Math.round((bounds.left - bounds.right) / 2) - bounds.left,
             offset_y = Math.round((bounds.top - bounds.bottom) / 2) - bounds.top;
+
+        move_field(field, offset_x, offset_y);
+
+        bounds.left += offset_x;
+        bounds.right += offset_x;
+        bounds.top += offset_y;
+        bounds.bottom += offset_y;
+    }
+
+    function move_field(field, offset_x, offset_y)
+    {
+        var len = field.length;
 
         for(var i = 0; i < len; i++)
         {
             field[i].x += offset_x;
             field[i].y += offset_y;
         }
-
-        bounds.left += offset_x;
-        bounds.right += offset_x;
-        bounds.top += offset_y;
-        bounds.bottom += offset_y;
     }
 
     /** @param {*=} bounds */
@@ -744,7 +761,7 @@ function LifeUniverse()
             bounds = get_bounds(field);
         }
 
-        var t = Date.now();
+        //var t = Date.now();
         var level = get_level_from_bounds(bounds),
             node = field2tree(field, level);
 
@@ -784,6 +801,7 @@ function LifeUniverse()
     {
         var level = get_level_from_bounds(bounds),
             node = field2tree(field, level);
+
 
         life.root = setup_meta_from_tree(node, level + 11);
 

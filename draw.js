@@ -69,6 +69,8 @@ function LifeCanvasDrawer()
 
         dom_parent.appendChild(canvas);
         dom_parent.appendChild(bg_canvas);
+
+        return true;
     }
 
     function set_size(width, height)

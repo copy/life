@@ -52,7 +52,6 @@ function pow2(x)
         rewind_state,
 
 
-        // current fps, cell size, border size, color settings
         /** @type {number} */
         max_fps,
 
@@ -106,7 +105,7 @@ function pow2(x)
         loaded = true;
 
 
-        if(drawer.init(document.body))
+        if(!drawer.init(document.body))
         {
             set_text($("notice").getElementsByTagName("h4")[0], 
                 "Canvas-less browsers are not supported. I'm sorry for that.");
@@ -419,7 +418,8 @@ function pow2(x)
             drawer.border_color = validate_color($("border_color").value) || "#222";
             
             var style_text = document.createTextNode(
-                ".button,.menu>div{background-color:" + drawer.cell_color + ";box-shadow:2px 2px 2px " + drawer.border_color + "}" +
+                ".button,.menu>div{background-color:" + drawer.cell_color +
+                ";box-shadow:2px 2px 2px " + drawer.border_color + "}" +
                 "#statusbar>div{border-color:" + drawer.cell_color + "}"
             );
 
@@ -438,11 +438,6 @@ function pow2(x)
             drawer.redraw(life.root);
             drawer.redraw_bg();
         }
-
-        $("settings_abort").onclick = function()
-        {
-            hide_element($("overlay"));
-        };
 
         $("settings_reset").onclick = function()
         {
@@ -468,7 +463,8 @@ function pow2(x)
             $("border_color").value = drawer.border_color;
         };
 
-        $("pattern_close").onclick = 
+        $("settings_abort").onclick = 
+            $("pattern_close").onclick = 
             $("alert_close").onclick = 
             $("about_close").onclick = function()
         {
@@ -558,8 +554,8 @@ function pow2(x)
 
         drawer.set_size(window.innerWidth, window.innerHeight);
 
-        life.clear_pattern();
         reset_settings();
+        life.clear_pattern();
         
         // production setup
         // loads a pattern defined by ?pattern=filename (without extension)
@@ -589,16 +585,24 @@ function pow2(x)
                         url : pattern_path + "otcametapixel.rle", 
                         onready : function(result)
                         {
-                            var otca_on_pattern = formats.parse_rle(result).field;
-                            otca_on = life.setup_field(otca_on_pattern, -5, -5).se.nw;
+                            var field = formats.parse_rle(result).field;
+
+                            life.move_field(field, -5, -5);
+                            life.setup_field(field);
+
+                            otca_on = life.root.se.nw;
                         }
                     },
                     {
                         url : pattern_path + "otcametapixeloff.rle", 
                         onready : function(result)
                         {
-                            var otca_off_pattern = formats.parse_rle(result).field;
-                            otca_off = life.setup_field(otca_off_pattern, -5, -5).se.nw;
+                            var field = formats.parse_rle(result).field;
+
+                            life.move_field(field, -5, -5);
+                            life.setup_field(field);
+
+                            otca_off = life.root.se.nw;
                         }
                     },
                     {
@@ -665,7 +669,8 @@ function pow2(x)
         /*
         //http_get("examples/vgun.rle", function(text)
         //http_get("examples/p59glidergunoriginal.rle", function(text)
-        http_get("examples/stackconstructor_diag.rle", function(text)
+        //http_get("examples/stackconstructor_diag.rle", function(text)
+        http_get("examples/otcametapixeloff.rle", function(text)
         {
             //return;
             var t = Date.now();
@@ -673,14 +678,14 @@ function pow2(x)
 
             console.log("full load", Date.now() - t);
             //console.log("kollisionen: " + e);
-            console.log("# of nodes: " + last_id);
-            console.log("hashmap.length: " + Object.keys(hashmap).length);
+            //console.log("# of nodes: " + last_id);
+            //console.log("hashmap.length: " + Object.keys(hashmap).length);
 
             var a = 1;
             t = Date.now();
             //console.log(root.level)
             while(a--) {
-                drawer.redraw();
+                drawer.redraw(life.root);
             }
             console.log("redraw", Date.now() - t)
 
@@ -693,7 +698,7 @@ function pow2(x)
 
 
             //console.log("kollisionen: " + e)
-            console.log("# of nodes: " + last_id)
+            //console.log("# of nodes: " + last_id)
 
         });
         /* */
@@ -721,11 +726,6 @@ function pow2(x)
             }
         }
     }
-
-
-    /**************************************
-     * draw stuff
-     *************************************/
 
     function reset_settings()
     {
@@ -810,9 +810,9 @@ function pow2(x)
         var bounds = life.get_bounds(field);
 
         life.set_step(10);
-        max_fps = 60;
+        max_fps = 6;
 
-        drawer.cell_width = 1 / 32;
+        drawer.cell_width = 1 / 128;
 
         life.make_center(field, bounds);
         life.setup_meta(otca_on, otca_off, field, bounds);
@@ -888,20 +888,17 @@ function pow2(x)
 
     function step(is_single)
     {
-        var time;
+        var time = Date.now();
         
         if(life.generation === 0)
         {
             rewind_state = life.root;
         }
         
-        time = Date.now();
-
         life.next_generation(is_single);
         drawer.redraw(life.root);
 
-        time = Date.now() - time;
-        update_hud(1000 / time);
+        update_hud(1000 / (Date.now() - time));
         
         if(time < 3)
         {
@@ -961,6 +958,7 @@ function pow2(x)
         if(fps) {
             set_text($("label_fps"), fps.toFixed(1));
         }
+
         set_text($("label_gen"), life.generation);
         fix_width($("label_gen"));
 
