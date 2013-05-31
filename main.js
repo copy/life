@@ -29,6 +29,13 @@ function pow2(x)
 {
     //var console = console || { log : function() {} };
 
+    if(!document.addEventListener)
+    {
+        // IE 8 seems to switch into rage mode if the code is only loaded partly,
+        // so we are saying goodbye earler
+        return;
+    }
+
     var 
 
         /** 
@@ -812,7 +819,7 @@ function pow2(x)
         life.set_step(10);
         max_fps = 6;
 
-        drawer.cell_width = 1 / 128;
+        drawer.cell_width = 1 / 32;
 
         life.make_center(field, bounds);
         life.setup_meta(otca_on, otca_off, field, bounds);
