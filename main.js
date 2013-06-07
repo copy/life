@@ -19,10 +19,18 @@
 
 "use strict";
 
-function pow2(x)
+var pow2 = (function()
 {
-    return Math.pow(2, x);
-}
+    var powers = new Float64Array(500);
+
+    for(var i = 0; i < 500; i++)
+        powers[i] = Math.pow(2, i);
+
+    return function(x)
+    {
+        return powers[x];
+    };
+})();
 
 
 (function() 
@@ -32,7 +40,7 @@ function pow2(x)
     if(!document.addEventListener)
     {
         // IE 8 seems to switch into rage mode if the code is only loaded partly,
-        // so we are saying goodbye earler
+        // so we are saying goodbye earlier
         return;
     }
 
@@ -819,7 +827,7 @@ function pow2(x)
         life.set_step(10);
         max_fps = 6;
 
-        drawer.cell_width = 1 / 32;
+        drawer.cell_width = 1 / 128;
 
         life.make_center(field, bounds);
         life.setup_meta(otca_on, otca_off, field, bounds);

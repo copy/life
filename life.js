@@ -305,7 +305,7 @@ function LifeUniverse()
 
         quick_next_generation : function()
         {
-            if(this.quick_cache)
+            if(this.quick_cache !== null)
             {
                 return this.quick_cache;
             }
