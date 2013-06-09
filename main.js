@@ -104,11 +104,7 @@ var pow2 = (function()
         window.mozRequestAnimationFrame ||
         setTimeout;
 
-
-    /**************************************
-     * setup
-     *************************************/
-
+    // setup
     window.onload = function()
     {
         if(loaded)
@@ -144,7 +140,6 @@ var pow2 = (function()
             drawer.set_size(window.innerWidth, window.innerHeight);
             
             drawer.redraw(life.root);
-            drawer.redraw_bg();
         }
         
         $("run_button").onclick = function()
@@ -187,7 +182,6 @@ var pow2 = (function()
 
                 drawer.center_view();
                 drawer.redraw(life.root);
-                drawer.redraw_bg();
             });
         };
         
@@ -251,7 +245,6 @@ var pow2 = (function()
 
             update_hud();
             drawer.redraw(life.root);
-            drawer.redraw_bg();
             return false;
         }
         
@@ -330,7 +323,6 @@ var pow2 = (function()
             if(do_redraw)
             {
                 drawer.redraw(life.root);
-                drawer.redraw_bg();
 
                 return false;
             }
@@ -343,7 +335,6 @@ var pow2 = (function()
             drawer.zoom_centered(false);
             update_hud();
             drawer.redraw(life.root);
-            drawer.redraw_bg();
         };
 
         $("zoomout_button").onclick = function()
@@ -351,7 +342,6 @@ var pow2 = (function()
             drawer.zoom_centered(true);
             update_hud();
             drawer.redraw(life.root);
-            drawer.redraw_bg();
         };
 
         var select_rules = $("select_rules").getElementsByTagName("span");
@@ -430,28 +420,20 @@ var pow2 = (function()
 
             drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
             drawer.background_color = validate_color($("background_color").value) || "#000";
-            drawer.border_color = validate_color($("border_color").value) || "#222";
-            
             var style_text = document.createTextNode(
                 ".button,.menu>div{background-color:" + drawer.cell_color +
-                ";box-shadow:2px 2px 2px " + drawer.border_color + "}" +
+                ";box-shadow:2px 2px 4px " + drawer.cell_color + "}" +
                 "#statusbar>div{border-color:" + drawer.cell_color + "}"
             );
 
             style_element.appendChild(style_text);
 
             $("statusbar").style.color = drawer.cell_color;
-            $("statusbar").style.textShadow = 
-                "1px 1px 2px " + drawer.border_color + 
-                ",-1px 1px 2px " + drawer.border_color + 
-                ",1px -1px 2px " + drawer.border_color + 
-                ",-1px -1px 2px " + drawer.border_color;
+            $("statusbar").style.textShadow = "0px 0px 1px " + drawer.cell_color;
 
             $("toolbar").style.color = drawer.background_color;
             
-            
             drawer.redraw(life.root);
-            drawer.redraw_bg();
         }
 
         $("settings_reset").onclick = function()
@@ -459,7 +441,6 @@ var pow2 = (function()
             reset_settings();
             
             drawer.redraw(life.root);
-            drawer.redraw_bg();
             
             hide_element($("overlay"));
         }
@@ -475,7 +456,6 @@ var pow2 = (function()
             $("border_width").value = drawer.border_width;
             $("cell_color").value = drawer.cell_color;
             $("background_color").value = drawer.background_color;
-            $("border_color").value = drawer.border_color;
         };
 
         $("settings_abort").onclick = 
@@ -745,10 +725,9 @@ var pow2 = (function()
     function reset_settings()
     {
         drawer.background_color = "#000";
-        drawer.border_color = "#222";
         drawer.cell_color = "#ccc";
 
-        drawer.border_width = 0.2;
+        drawer.border_width = .25;
         drawer.cell_width = 2;
 
         life.rule_b = 1 << 3;
@@ -802,7 +781,6 @@ var pow2 = (function()
             hide_element($("overlay"));
 
             drawer.redraw(life.root);
-            drawer.redraw_bg();
             
             update_hud();
             set_text($("pattern_name"), result.title || "");

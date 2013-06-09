@@ -12,31 +12,31 @@ function LifeCanvasDrawer()
         /** @type {number} */
         canvas_offset_y = 0,
 
+        canvas_width,
+        canvas_height,
+
         // canvas contexts
         canvas,
         context,
 
-        bg_canvas,
-        bg_context,
+        image_data,
+        image_data_data,
 
-        fg_context,
-        offscreen_canvas,
-
-        /** effective visible part of the canvas, in x/y of the pattern */
-        screen_left, screen_top, screen_right, screen_bottom,
+        // in pixels
+        border_width,
+        cell_color_rgb,
 
         drawer = this;
 
-    // size of the viewport in pixels
-    /** @type {number} */
-    this.width = 0;
-    /** @type {number} */
-    this.height = 0;
+
+    this.cell_color = null;
+
+    // given as ratio of cell size
+    this.border_width = 0;
 
 
     this.init = init;
     this.redraw = redraw;
-    this.redraw_bg = redraw_bg;
     this.move = move;
     this.zoom = zoom;
     this.zoom_centered = zoom_centered;
@@ -56,136 +56,143 @@ function LifeCanvasDrawer()
             return false;
         }
 
-        drawer.canvas = bg_canvas = document.createElement("canvas");
-        offscreen_canvas = document.createElement("canvas");
+        drawer.canvas = canvas;
         
-        context = offscreen_canvas.getContext("2d");
-        bg_context = bg_canvas.getContext("2d");
-
-        bg_canvas.style.position = "absolute"; 
-        bg_canvas.style.top = bg_canvas.style.left = "0px";
-
-        fg_context = canvas.getContext("2d");
+        context = canvas.getContext("2d");
 
         dom_parent.appendChild(canvas);
-        dom_parent.appendChild(bg_canvas);
 
         return true;
     }
 
     function set_size(width, height)
     {
-        if(width !== canvas.width || height !== canvas.height)
+        if(width !== canvas_width || height !== canvas_height)
         {
-            offscreen_canvas.width = bg_canvas.width = canvas.width = width;
-            offscreen_canvas.height = bg_canvas.height = canvas.height = height;
+            canvas_width = canvas.width = width;
+            canvas_height = canvas.height = height;
             
             context.fillStyle = drawer.cell_color;
+
+            image_data = context.createImageData(width, height);
+            image_data_data = image_data.data;
+
+            for(var i = width * height * 4 - 1; i > 0; )
+            {
+                image_data_data[i] = 0xFF;
+                i -= 4;
+            }
         }
     }
 
-    function draw_node(node, left, top)
+    function draw_node(node, size, left, top)
     {
         if(node.population === 0)
         {
             return;
         }
         
-        var offset = pow2(node.level - 1),
-            offset2 = offset * 2;
-        
         if( 
-            left + offset2 < screen_left ||
-            top + offset2 < screen_top ||
-            left > screen_right ||
-            top > screen_bottom
+            left + size < 0 ||
+            top + size < 0 ||
+            left >= canvas_width ||
+            top >= canvas_height
         ) {
             // do not draw outside of the screen
             return;
         }
-
-        if(node.level === 0)
+        
+        if(size <= 1)
         {
             if(node.population)
             {
-                context.fillRect(
-                    canvas_offset_x + left * drawer.cell_width,
-                    canvas_offset_y + top * drawer.cell_width,
-                    drawer.cell_width,
-                    drawer.cell_width
-                );
+                fill_square(left | 0, top | 0, 1);
             }
         }
-        else if(offset2 * drawer.cell_width <= 1)
+        else if(node.level === 0)
         {
             if(node.population)
             {
-                context.fillRect(
-                    canvas_offset_x + left * drawer.cell_width | 0,
-                    canvas_offset_y + top * drawer.cell_width | 0,
-                    1,
-                    1
-                );
+                fill_square(left, top, drawer.cell_width);
             }
         }
         else
         {
-            draw_node(node.nw, left, top);
-            draw_node(node.ne, left + offset, top);
-            draw_node(node.sw, left, top + offset);
-            draw_node(node.se, left + offset, top + offset);
+            size /= 2;
+
+            draw_node(node.nw, size, left, top);
+            draw_node(node.ne, size, left + size, top);
+            draw_node(node.sw, size, left, top + size);
+            draw_node(node.se, size, left + size, top + size);
         }
     }
 
-    function redraw_part(node, x, y, width, height)
+    function fill_square(x, y, size)
     {
-        // compute some variables that are used in the redrawing process
-        screen_left = Math.floor((x - canvas_offset_x) / drawer.cell_width);
-        screen_top = Math.floor((y - canvas_offset_y) / drawer.cell_width);
-        screen_right = Math.ceil((x - canvas_offset_x + width) / drawer.cell_width); 
-        screen_bottom = Math.ceil((y - canvas_offset_y + height) / drawer.cell_width);
+        var width = size - border_width,
+            height = width;
 
-        context.fillStyle = drawer.background_color;
-        context.fillRect(x, y, width, height);
-        context.fillStyle = drawer.cell_color;
+        if(x < 0)
+        {
+            width += x;
+            x = 0;
+        }
+        else if(x + width > canvas_width)
+        {
+            width -= canvas_width - x;
+        }
 
-        var offset = pow2(node.level - 1);
+        if(y < 0)
+        {
+            height += y;
+            y = 0;
+        }
+        else if(y + height > canvas_height)
+        {
+            height -= canvas_height - y;
+        }
         
-        draw_node(node, -offset, -offset);
+        var pointer = x + y * canvas_width << 2,
+            row_width = canvas_width - width << 2;
 
-        fg_context.drawImage(offscreen_canvas, x, y, width, height, x, y, width, height);
+        //console.assert(x >= 0 && y >= 0 && x + width <= canvas_width && y + height <= canvas_height);
+
+        for(var i = 0; i < height; i++)
+        {
+            for(var j = 0; j < width; j++)
+            {
+                image_data_data[pointer] = cell_color_rgb.r;
+                image_data_data[pointer + 1] = cell_color_rgb.g;
+                image_data_data[pointer + 2] = cell_color_rgb.b;
+
+                pointer += 4;
+            }
+            pointer += row_width;
+        }
     }
+
 
     function redraw(node)
     {
-        redraw_part(node, 0, 0, canvas.width, canvas.height);
-    }
+        var bg_color_rgb = color2rgb(drawer.background_color);
 
-    function redraw_bg()
-    {
-        var border_width = drawer.border_width * drawer.cell_width | 0;
+        border_width = drawer.border_width * drawer.cell_width | 0;
+        cell_color_rgb = color2rgb(drawer.cell_color);
 
-        bg_context.clearRect(0, 0, canvas.width, canvas.height);
-
-        if(border_width === 0) {
-            return;
-        }
-        
-        bg_context.fillStyle = drawer.border_color;
-        
-        var x = canvas_offset_x % drawer.cell_width - border_width;
-        for(; x < canvas.width; x += drawer.cell_width)
+        for(var i = canvas_width * canvas_height * 4 - 4; i > 0;)
         {
-            bg_context.fillRect(x, 0, border_width, canvas.height);
+            image_data_data[i] = bg_color_rgb.r;
+            image_data_data[i + 1] = bg_color_rgb.g;
+            image_data_data[i + 2] = bg_color_rgb.b;
+
+            i -= 4;
         }
+
+        var size = pow2(node.level - 1) * drawer.cell_width;
         
-        var y = canvas_offset_y % drawer.cell_width - border_width;
-        for(; y < canvas.height; y += drawer.cell_width)
-        {
-            bg_context.fillRect(0, y, canvas.width, border_width);
-        }
-        
-        bg_context.fillStyle = drawer.cell_color;
+        draw_node(node, 2 * size, canvas_offset_x - size, canvas_offset_y - size);
+
+        context.putImageData(image_data, 0, 0);
     }
 
     /** 
@@ -212,7 +219,7 @@ function LifeCanvasDrawer()
 
     function zoom_centered(out)
     {
-        zoom(out, canvas.width >> 1, canvas.height >> 1);
+        zoom(out, canvas_width >> 1, canvas_height >> 1);
     }
 
     /*
@@ -233,8 +240,8 @@ function LifeCanvasDrawer()
 
     function center_view()
     {
-        canvas_offset_x = canvas.width >> 1;
-        canvas_offset_y = canvas.height >> 1;
+        canvas_offset_x = canvas_width >> 1;
+        canvas_offset_y = canvas_height >> 1;
     }
 
     function move(node, dx, dy)
@@ -242,42 +249,47 @@ function LifeCanvasDrawer()
         canvas_offset_x += dx;
         canvas_offset_y += dy;
 
-        fg_context.drawImage(canvas, dx, dy);
+        redraw(node);
 
-        if(dx < 0)
-        {
-            redraw_part(node, canvas.width + dx, 0, -dx, canvas.height);
-        }
-        else if(dx > 0)
-        {
-            redraw_part(node, 0, 0, dx, canvas.height);
-        }
+        // This code is faster for patterns with a huge density (for instance, spacefiller)
+        // It causes jitter for all other patterns though, that's why the above version is preferred
 
-        if(dy < 0)
-        {
-            redraw_part(node, 0, canvas.height + dy, canvas.width, -dy);
-        }
-        else if(dy > 0)
-        {
-            redraw_part(node, 0, 0, canvas.width, dy);
-        }
+        //context.drawImage(canvas, dx, dy);
 
-        drawer.redraw_bg();
+        //if(dx < 0)
+        //{
+        //    redraw_part(node, canvas_width + dx, 0, -dx, canvas_height);
+        //}
+        //else if(dx > 0)
+        //{
+        //    redraw_part(node, 0, 0, dx, canvas_height);
+        //}
+
+        //if(dy < 0)
+        //{
+        //    redraw_part(node, 0, canvas_height + dy, canvas_width, -dy);
+        //}
+        //else if(dy > 0)
+        //{
+        //    redraw_part(node, 0, 0, canvas_width, dy);
+        //}
     }
 
     function draw_cell(x, y, set)
     {
         var cell_x = x * drawer.cell_width + canvas_offset_x,
-            cell_y = y * drawer.cell_width + canvas_offset_y;
+            cell_y = y * drawer.cell_width + canvas_offset_y,
+            width = Math.ceil(drawer.cell_width) - 
+                drawer.cell_width * drawer.border_width | 0;
 
         if(set) {
-            fg_context.fillStyle = drawer.cell_color;
+            context.fillStyle = drawer.cell_color;
         }
         else {
-            fg_context.fillStyle = drawer.background_color;
+            context.fillStyle = drawer.background_color;
         }
-
-        fg_context.fillRect(cell_x, cell_y, drawer.cell_width, drawer.cell_width);
+        
+        context.fillRect(cell_x, cell_y, width, width);
     }
 
     function pixel2cell(x, y)
@@ -286,6 +298,27 @@ function LifeCanvasDrawer()
             x : Math.floor((x - canvas_offset_x + drawer.border_width / 2) / drawer.cell_width),
             y : Math.floor((y - canvas_offset_y + drawer.border_width / 2) / drawer.cell_width)
         };
+    }
+
+    // #321 or #332211 to { r: 0x33, b: 0x22, g: 0x11 }
+    function color2rgb(color)
+    {
+        if(color.length === 4)
+        {
+            return {
+                r: parseInt(color[1] + color[1], 16),
+                g: parseInt(color[2] + color[2], 16),
+                b: parseInt(color[3] + color[3], 16)
+            };
+        }
+        else
+        {
+            return {
+                r: parseInt(color.slice(1, 3), 16),
+                g: parseInt(color.slice(3, 5), 16),
+                b: parseInt(color.slice(5, 7), 16)
+            };
+        }
     }
 }
 

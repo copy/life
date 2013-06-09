@@ -28,7 +28,7 @@ body {
     font-size: 12px;
     z-index: 11;
     width: 99%;
-    text-shadow: 1px 1px 2px #222, -1px 1px 2px #222, 1px -1px 2px #222, -1px -1px 2px #222;
+    text-shadow: 0px 0px 1px #ccc;
     -webkit-user-select: none;
     -moz-user-select: none;
 }
@@ -53,7 +53,7 @@ body {
     cursor: pointer;
     margin-right: 20px;
     margin-bottom: 7px;
-    box-shadow: 2px 2px 2px #222;
+    box-shadow: 2px 2px 4px #ccc;
     -webkit-user-select: none;
     -moz-user-select: none;
 }
