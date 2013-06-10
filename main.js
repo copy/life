@@ -661,11 +661,12 @@ var pow2 = (function()
         // debug setup
         // loads big pattern
         
+        
         /*
-        //http_get("examples/vgun.rle", function(text)
+        http_get("examples/vgun.rle", function(text)
         //http_get("examples/p59glidergunoriginal.rle", function(text)
         //http_get("examples/stackconstructor_diag.rle", function(text)
-        http_get("examples/otcametapixeloff.rle", function(text)
+        //http_get("examples/otcametapixeloff.rle", function(text)
         {
             //return;
             var t = Date.now();
@@ -682,9 +683,10 @@ var pow2 = (function()
             while(a--) {
                 drawer.redraw(life.root);
             }
-            console.log("redraw", Date.now() - t)
+            console.log("redraw", Date.now() - t);
 
-            a = 1;
+            window.e = 0;
+            a = 100;
             t = Date.now();
             while(a--) {
                 life.next_generation(true);
@@ -692,7 +694,7 @@ var pow2 = (function()
             console.log("next generation", Date.now() - t)
 
 
-            //console.log("kollisionen: " + e)
+            console.log("kollisionen: " + window.e);
             //console.log("# of nodes: " + last_id)
 
         });
