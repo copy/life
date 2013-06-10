@@ -139,7 +139,7 @@ var pow2 = (function()
         {
             drawer.set_size(window.innerWidth, window.innerHeight);
             
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
         }
         
         $("run_button").onclick = function()
@@ -244,7 +244,7 @@ var pow2 = (function()
             drawer.zoom((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
 
             update_hud();
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
             return false;
         }
         
@@ -322,7 +322,7 @@ var pow2 = (function()
 
             if(do_redraw)
             {
-                drawer.redraw(life.root);
+                lazy_redraw(life.root);
 
                 return false;
             }
@@ -334,14 +334,14 @@ var pow2 = (function()
         {
             drawer.zoom_centered(false);
             update_hud();
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
         };
 
         $("zoomout_button").onclick = function()
         {
             drawer.zoom_centered(true);
             update_hud();
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
         };
 
         var select_rules = $("select_rules").getElementsByTagName("span");
@@ -433,14 +433,14 @@ var pow2 = (function()
 
             $("toolbar").style.color = drawer.background_color;
             
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
         }
 
         $("settings_reset").onclick = function()
         {
             reset_settings();
             
-            drawer.redraw(life.root);
+            lazy_redraw(life.root);
             
             hide_element($("overlay"));
         }
@@ -792,7 +792,6 @@ var pow2 = (function()
                 link : pattern_link
             };
         });
-        
     }
 
     /*
@@ -968,6 +967,14 @@ var pow2 = (function()
         }
     }
 
+    function lazy_redraw(node)
+    {
+        if(!running || max_fps < 15)
+        {
+            drawer.redraw(node);
+        }
+    }
+
     function set_text(obj, text)
     {
         obj.textContent = String(text);
@@ -1088,10 +1095,7 @@ var pow2 = (function()
 
         drawer.move(dx, dy);
 
-        if(!running || max_fps < 15)
-        {
-            drawer.redraw(life.root);
-        }
+        lazy_redraw(life.root);
 
         last_mouse_x = e.clientX;
         last_mouse_y = e.clientY;
@@ -1147,6 +1151,7 @@ var pow2 = (function()
     {
         node.style.display = "block";
     }
+
 
 })();
 
