@@ -687,7 +687,7 @@ function LifeUniverse()
         hashmap_size = hashmap_size << 1 | 1;
         max_load = hashmap_size * LOAD_FACTOR | 0;
 
-        for(var i = 0; b <= hashmap_size; i++)
+        for(var i = 0; i <= hashmap_size; i++)
             hashmap[i] = undefined;
 
         last_id = 3;
