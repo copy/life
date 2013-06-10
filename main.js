@@ -271,23 +271,23 @@ var pow2 = (function()
             
             if(chr === 37 || chr === 72)
             {
-                drawer.move(life.root, 15, 0);
-                return false;
+                drawer.move(15, 0);
+                do_redraw = true;
             }
             else if(chr === 38 || chr === 75)
             {
-                drawer.move(life.root, 0, 15);
-                return false;
+                drawer.move(0, 15);
+                do_redraw = true;
             }
             else if(chr === 39 || chr === 76)
             {
-                drawer.move(life.root, -15, 0);
-                return false;
+                drawer.move(-15, 0);
+                do_redraw = true;
             }
             else if(chr === 40 || chr === 74)
             {
-                drawer.move(life.root, 0, -15);
-                return false;
+                drawer.move(0, -15);
+                do_redraw = true;
             }
             else if(chr === 27)
             {
@@ -1086,7 +1086,12 @@ var pow2 = (function()
         var dx = e.clientX - last_mouse_x,
             dy = e.clientY - last_mouse_y;
 
-        drawer.move(life.root, dx, dy);
+        drawer.move(dx, dy);
+
+        if(!running || max_fps < 15)
+        {
+            drawer.redraw(life.root);
+        }
 
         last_mouse_x = e.clientX;
         last_mouse_y = e.clientY;

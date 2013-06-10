@@ -244,12 +244,10 @@ function LifeCanvasDrawer()
         canvas_offset_y = canvas_height >> 1;
     }
 
-    function move(node, dx, dy)
+    function move(dx, dy)
     {
         canvas_offset_x += dx;
         canvas_offset_y += dy;
-
-        redraw(node);
 
         // This code is faster for patterns with a huge density (for instance, spacefiller)
         // It causes jitter for all other patterns though, that's why the above version is preferred
