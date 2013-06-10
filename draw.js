@@ -30,6 +30,7 @@ function LifeCanvasDrawer()
 
 
     this.cell_color = null;
+    this.background_color = null;
 
     // given as ratio of cell size
     this.border_width = 0;
