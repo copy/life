@@ -392,19 +392,13 @@ var pow2 = (function()
 
             new_gen_step = Math.round(Math.log(Number($("gen_step").value) || 0) / Math.LN2);
             
-            if(new_rule_s !== life.rule_s || new_rule_b !== life.rule_b)
-            {
-                life.set_rules(new_rule_s, new_rule_b);
-            }
+            life.set_rules(new_rule_s, new_rule_b);
 
-            if(new_gen_step !== life.step) 
-            {
-                if(!new_gen_step || new_gen_step < 0) {
-                    life.set_step(0);
-                }
-                else {
-                    life.set_step(new_gen_step);
-                }
+            if(!new_gen_step || new_gen_step < 0) {
+                life.set_step(0);
+            }
+            else {
+                life.set_step(new_gen_step);
             }
             
             max_fps = Number($("max_fps").value);
@@ -729,7 +723,7 @@ var pow2 = (function()
         drawer.background_color = "#000";
         drawer.cell_color = "#ccc";
 
-        drawer.border_width = .25;
+        drawer.border_width = .2;
         drawer.cell_width = 2;
 
         life.rule_b = 1 << 3;

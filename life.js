@@ -3,16 +3,22 @@
 /** @constructor */
 function LifeUniverse()
 {
+    /** @const */
+    var LOAD_FACTOR = .6,
+        INITIAL_SIZE = 20;
 
     var 
-
         // last id for nodes
         /** @type {number} */
         last_id,
 
-        // at which id has the hashmap been recreated
-        // last_id minus this number is equal to the size of the hashmap
-        last_id_hashmap,
+        // Size of the hashmap. 
+        // Always a power of 2 minus 1
+        hashmap_size,
+
+
+        // Size when the next GC will happen
+        max_load,
 
 
         // living or dead leaf
@@ -58,7 +64,7 @@ function LifeUniverse()
             
     false_leaf =
     {
-        nr: String.fromCharCode(0, 0),
+        id: 2,
         population: 0,
         level: 0,
         
@@ -79,7 +85,7 @@ function LifeUniverse()
 
     true_leaf =
     {
-        nr: String.fromCharCode(1, 0),
+        id: 1,
         population: 1,
         level: 0,
         
@@ -109,9 +115,8 @@ function LifeUniverse()
         this.ne = ne;
         this.sw = sw;
         this.se = se;
-        
-        var id = last_id++;
-        this.nr = String.fromCharCode(id & 0xffff, id >> 16);
+
+        this.id = last_id++;
         
         // 2^level = width of area
         this.level = nw.level + 1;
@@ -328,6 +333,7 @@ function LifeUniverse()
                 n20 = sw.quick_next_generation(),
                 n21 = create_tree(sw.ne, se.nw, sw.se, se.sw).quick_next_generation(),
                 n22 = se.quick_next_generation();
+
             
             return this.quick_cache = create_tree(
                 create_tree(n00, n01, n10, n11).quick_next_generation(),
@@ -356,7 +362,8 @@ function LifeUniverse()
                     }
                 }
             }
-        }
+        },
+
 
     };
 
@@ -419,94 +426,224 @@ function LifeUniverse()
         );
     }
 
-    function clear_cache(both)
+    // Preserve the tree, but remove all cached 
+    // generations forward
+    function uncache(also_quick)
     {
-        // faster and safer than  for(var x in hashmap)
-        var entries = Object.keys(hashmap),
-            len = entries.length;
-
-        for(var i = 0; i < len; i++)
+        for(var i = 0; i <= hashmap_size; i++)
         {
-            hashmap[entries[i]].cache = null;
+            var node = hashmap[i];
 
-            if(both) {
-                hashmap[entries[i]].quick_cache = null;
+            if(node !== undefined)
+            {
+                node.cache = null;
+
+                if(also_quick)
+                    node.quick_cache = null;
             }
         }
     }
 
-    function add_hash(node)
+    function calc_hash(nw, ne, sw, se)
     {
-        var hash = node.nw.nr + node.ne.nr + node.sw.nr + node.se.nr,
-            entry = hashmap[hash];
+        //var hash = 0x1a2f,
+        //    k;
 
-        if(entry)
-        {
-            return false;
-        }
-        else
-        {
-            hashmap[hash] = node;
-            return true;
-        }
+        //k = nw.id * 0xcc9e2d51;
+        //k = k << 15 | k >> 17;
+        //k = k * 0x1b873593;
+        //hash = hash ^ k;
+        //hash = hash << 13 | hash >> 19;
+        //hash = hash * 5 + 0xe6546b64
 
+        //k = ne.id * 0xcc9e2d51;
+        //k = k << 15 | k >> 17;
+        //k = k * 0x1b873593;
+        //hash = hash ^ k;
+        //hash = hash << 13 | hash >> 19;
+        //hash = hash * 5 + 0xe6546b64
+
+        //k = sw.id * 0xcc9e2d51;
+        //k = k << 15 | k >> 17;
+        //k = k * 0x1b873593;
+        //hash = hash ^ k;
+        //hash = hash << 13 | hash >> 19;
+        //hash = hash * 5 + 0xe6546b64
+
+        //k = se.id * 0xcc9e2d51;
+        //k = k << 15 | k >> 17;
+        //k = k * 0x1b873593;
+        //hash = hash ^ k;
+        //hash = hash << 13 | hash >> 19;
+        //hash = hash * 5 + 0xe6546b64
+
+        //hash = hash ^ (hash >> 16);
+        //hash = hash * 0x85ebca6b;
+        //hash = hash ^ (hash >> 13);
+        //hash = hash * 0xc2b2ae35;
+        //hash = hash ^ (hash >> 16);
+
+        //var hash = nw.id + ne.id * 117 + sw.id * 1201 + se.id * 65437;
+        //hash ^= hash >> 16 ^ hash >> 7;
+
+
+        var hash = nw.id;
+        hash = ne.id + (hash << 6) + (hash << 16) - hash;
+        hash = se.id + (hash << 6) + (hash << 16) - hash;
+        hash = sw.id + (hash << 6) + (hash << 16) - hash;
+
+
+        //var hash = nw.id * 33 + 720;
+        //hash = hash * 33 + ne.id + 720;
+        //hash = hash * 33 + sw.id + 720;
+        //hash = hash * 33 + se.id + 720;
+
+
+        //var hash = 5381;
+        //hash = (hash << 5) + hash + nw.id;
+        //hash = (hash << 5) + hash + ne.id;
+        //hash = (hash << 5) + hash + sw.id;
+        //hash = (hash << 5) + hash + se.id;
+
+        //var hash = 0;
+        //hash += nw.id;
+        //hash += hash << 10;
+        //hash ^= hash >> 6;
+        //hash += ne.id;
+        //hash += hash << 10;
+        //hash ^= hash >> 6;
+        //hash += sw.id;
+        //hash += hash << 10;
+        //hash ^= hash >> 6;
+        //hash += se.id;
+        //hash += hash << 10;
+        //hash ^= hash >> 6;
+
+        //var hash = 2166136261;
+        //hash ^= nw.id;
+        //hash = hash * 16777619;
+        //hash ^= ne.id;
+        //hash = hash * 16777619;
+        //hash ^= sw.id;
+        //hash = hash * 16777619;
+        //hash ^= se.id;
+        //hash = hash * 16777619;
+        
+        //var hash = nw.id;
+        //hash *= 37;
+        //hash += ne.id;
+        //hash *= 37;
+        //hash += sw.id;
+        //hash *= 37;
+        //hash += se.id;
+
+        return hash;
+    }
+
+    // Hash a node, return false if it was hashed before.
+    function add_hash(n)
+    {
+        var hash = calc_hash(n.nw, n.ne, n.sw, n.se);
+
+        for(var node;;)
+        {
+            hash &= hashmap_size;
+
+            var node = hashmap[hash];
+
+            if(node === undefined)
+            {
+                // Update the id. We have looked for an old id, as
+                // the the hashmap has been cleared and ids have been
+                // reset, but this cannot avoided without iterating
+                // the tree twice.
+                n.id = last_id++;
+
+                hashmap[hash] = n;
+
+                return true;
+            }
+            else if(node.nw === n.nw && node.ne === n.ne && node.sw === n.sw && node.se === n.se)
+            {
+                return false;
+            }
+
+            hash++;
+        }
     }
 
     function create_tree(nw, ne, sw, se)
     {
-        /*var n1, n2, n3, n4;
-        //console.log(hashmap)
+        var hash = calc_hash(nw, ne, sw, se);
 
-        n1 = hashmap[nw.id];
-
-        if(!n1) {
-            n1 = hashmap[nw.nr] = {};
-            n2 = n1[ne.nr] = {};
-            n3 = n2[sw.nr] = {};
-            return n3[se.nr] = new TreeNode(nw, ne, sw, se);
-        }
-
-        n2 = n1[ne.nr];
-
-        if(!n2) {
-            n2 = n1[ne.nr] = {};
-            n3 = n2[sw.nr] = {};
-            return n3[se.nr] = new TreeNode(nw, ne, sw, se);
-        }
-
-        n3 = n2[sw.nr];
-
-        if(!n3) {
-            n3 = n2[sw.nr] = {};
-            return n3[se.nr] = new TreeNode(nw, ne, sw, se);
-        }
-
-        n4 = n3[se.nr];
-
-        if(n4)
-            return n3[se.nr];
-        else
-            return n3[se.nr] = new TreeNode(nw, ne, sw, se);
-            */
-
-        /*var hash = String.fromCharCode(
-            nw.nr & 0xFFFF, (nw.nr & 0xFF0000) >> 8 | (ne.nr & 0xFF), ne.nr >> 8 & 0xFFFF,
-            sw.nr & 0xFFFF, (sw.nr & 0xFF0000) >> 8 | (se.nr & 0xFF), se.nr >> 8 & 0xFFFF
-        );*/
-        //var hash = String.fromCharCode(nw.nr, nw.nr >> 16, ne.nr, ne.nr >> 16, sw.nr, sw.nr >> 16, se.nr, se.nr >> 16);
-
-        //var hash = String.fromCharCode(nw.nr, ne.nr, sw.nr, se.nr);
-        var hash = nw.nr + ne.nr + sw.nr + se.nr,
-            entry = hashmap[hash];
-
-        if(entry)
+        for(var node;;)
         {
-            return entry;
+            hash &= hashmap_size;
+
+            var node = hashmap[hash];
+
+            if(node === undefined)
+            {
+                if(last_id > max_load)
+                {
+                    garbage_collect();
+                    return create_tree(nw, ne, sw, se);
+                }
+
+                return hashmap[hash] = new TreeNode(nw, ne, sw, se);
+            }
+            else if(node.nw === nw && node.ne === ne && node.sw === sw && node.se === se)
+            {
+                return node;
+            }
+
+            // "Open Addressing" - simply try the next cell
+            hash++;
         }
-        else
+
+        // "normal" buckets
+        /*
+        var entry = hashmap[hash],
+            node;
+        
+        if(entry === undefined)
         {
             return hashmap[hash] = new TreeNode(nw, ne, sw, se);
         }
+        else if(entry instanceof Array)
+        {
+            if(x < entry.length) x = entry.length, y = [nw, ne, sw, se, hash];
+            for(var i = 0; i < entry.length; i++)
+            {
+                node = entry[i];
+
+                if(node.nw === nw && node.ne === ne && node.sw === sw && node.se === se)
+                {
+                    return node;
+                }
+            }
+
+            node = new TreeNode(nw, ne, sw, se);
+
+            entry.push(node);
+
+            return node;
+        }
+        else
+        {
+            if(entry.nw === nw && entry.ne === ne && entry.sw === sw && entry.se === se)
+            {
+                return entry;
+            }
+            else
+            {
+                node = new TreeNode(nw, ne, sw, se);
+
+                hashmap[hash] = [entry, node];
+
+                return node;
+            }
+        }/* */
     }
 
 
@@ -515,7 +652,7 @@ function LifeUniverse()
         var root = life.root;
 
         while(
-            (is_single && life.step > life.root.level - 2) || 
+            (is_single && life.step > root.level - 2) || 
             root.nw.population !== root.nw.se.se.population ||
             root.ne.population !== root.ne.sw.sw.population ||
             root.sw.population !== root.sw.ne.ne.population ||
@@ -536,36 +673,86 @@ function LifeUniverse()
         }
 
         life.root = root;
+    }
 
-        garbage_collect();
+    function garbage_collect()
+    {
+        //document.getElementById("pattern_name").textContent = last_id + " / " + (last_id / hashmap_size).toFixed(5);
+        //console.log("entries: " + last_id);
+        //console.log("load factor: " + last_id / hashmap_size);
+
+        //console.log("collecting garbage ...");
+        //var t = Date.now();
+
+        hashmap_size = hashmap_size << 1 | 1;
+        max_load = hashmap_size * LOAD_FACTOR | 0;
+
+        for(var i = 0; b <= hashmap_size; i++)
+            hashmap[i] = undefined;
+
+        last_id = 3;
+        life.root.hash();
+        //console.log("done in " + (Date.now() - t));
+        //console.log("last id: " + last_id);
+        //console.log("new hashmap size: " + hashmap_size);
+        //console.log("size: " + hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
     }
 
     /*
-     * This might not be perfect yet, but it works fine in many cases.
-     * Needs some more testing on different patterns.
-     */
     function garbage_collect()
     {
-        var hashmap_size = last_id - last_id_hashmap;
+        var previous_size = hashmap_size,
+            new_hashmap = [];
+        
+        hashmap_size = hashmap_size << 1 | 1;
+        max_load = hashmap_size * LOAD_FACTOR | 0;
 
-        if(hashmap_size > 3000000)
+        for(var i = 0; i <= hashmap_size; i++)
         {
-            //console.log("collecting garbage ...");
-            //var t = Date.now();
-            hashmap = {};
-            life.root.hash();
-            last_id_hashmap += 3000000;
-            //console.log("done in " + Date.now() - t);
-            //console.log("entries: " + (last_id - last_id_hashmap));
-            //console.log("ratio: " + (1 - (last_id - last_id_hashmap) / hashmap_size));
+            new_hashmap[i] = undefined
         }
-    }
+
+        for(var i = 0; i <= previous_size; i++)
+        {
+            var node = hashmap[i],
+                hash;
+
+            if(node !== undefined)
+            {
+                hash = calc_hash(node.nw, node.ne, node.sw, node.se);
+
+                for(;;)
+                {
+                    hash &= hashmap_size;
+
+                    if(new_hashmap[i] === undefined)
+                    {
+                        new_hashmap[i] = node;
+                        break;
+                    }
+
+                    hash++;
+                }
+            }
+        }
+        console.log("Garbage collected!");
+        console.log("Last id: " + last_id);
+        console.log("old size: " + hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
+        console.log("new size: " + new_hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
+
+        hashmap = new_hashmap;
+    }*/
 
     function clear_pattern()
     {
-        last_id = 2;
-        last_id_hashmap = 0;
-        hashmap = {};
+        last_id = 3;
+        hashmap_size = (1 << INITIAL_SIZE) - 1;
+        max_load = hashmap_size * LOAD_FACTOR | 0;
+        hashmap = [];
+
+        for(var i = 0; i <= hashmap_size; i++)
+            hashmap[i] = undefined;
+
         life.root = empty_tree(3);
         life.generation = 0;
     }
@@ -832,7 +1019,6 @@ function LifeUniverse()
     }
 
 
-
     function get_field(node)
     {
         var offset = pow2(node.level - 1),
@@ -845,20 +1031,26 @@ function LifeUniverse()
 
     function set_step(step)
     {
-        life.step = step;
+        if(step !== life.step)
+        {
+            life.step = step;
 
-        if(life.generation > 0) {
-            clear_cache(false);
+            if(life.generation > 0) {
+                uncache(false);
+            }
         }
     }
 
     function set_rules(s, b)
     {
-        life.rule_s = s;
-        life.rule_b = b;
+        if(life.rule_s !== s || life.rule_b !== b)
+        {
+            life.rule_s = s;
+            life.rule_b = b;
 
-        if(life.generation > 0) {
-            clear_cache(true);
+            if(life.generation > 0) {
+                uncache(true);
+            }
         }
     }
 }
