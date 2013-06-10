@@ -3,13 +3,11 @@
  * - optimize drawing, only draw changed cells <- state: does not seem to have a great effect
  * - export patterns
  * - remember settings in the hash or offer link
- * - improve garbage collector
  * - life 1.05 is currently broken
  * - better mobile handling: allow scrolling, run with less fps
  * - jump to coordinate
  * - goto center
  * - make screenshots, maybe gifs
- * - too many global variables
  * - allow people to upload patterns
  * - import patterns from file
  * - maybe more than 2 states (non-life)
