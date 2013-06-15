@@ -31,11 +31,26 @@ function LifeUniverse()
 
         life = this;
 
+
+    var pow2 = (function()
+    {
+        var powers = new Float64Array(500);
+
+        for(var i = 0; i < 500; i++)
+            powers[i] = Math.pow(2, i);
+
+        return function(x)
+        {
+            return powers[x];
+        };
+    })();
+
+
     // current rule setting
     /** @type {number} */
-    this.rule_b = 0;
+    this.rule_b = 1 << 3;
     /** @type {number} */
-    this.rule_s = 0;
+    this.rule_s =  1 << 2 | 1 << 3;
 
     this.root = null;
 

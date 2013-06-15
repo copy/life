@@ -189,7 +189,7 @@ function LifeCanvasDrawer()
             i -= 4;
         }
 
-        var size = pow2(node.level - 1) * drawer.cell_width;
+        var size = Math.pow(2, node.level - 1) * drawer.cell_width;
         
         draw_node(node, 2 * size, canvas_offset_x - size, canvas_offset_y - size);
 

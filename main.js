@@ -17,19 +17,6 @@
 
 "use strict";
 
-var pow2 = (function()
-{
-    var powers = new Float64Array(500);
-
-    for(var i = 0; i < 500; i++)
-        powers[i] = Math.pow(2, i);
-
-    return function(x)
-    {
-        return powers[x];
-    };
-})();
-
 
 (function() 
 {
