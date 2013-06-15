@@ -279,7 +279,9 @@ function LifeCanvasDrawer()
         var cell_x = x * drawer.cell_width + canvas_offset_x,
             cell_y = y * drawer.cell_width + canvas_offset_y,
             width = Math.ceil(drawer.cell_width) - 
-                drawer.cell_width * drawer.border_width | 0;
+                (drawer.cell_width * drawer.border_width | 0);
+
+        console.log(width, Math.ceil(drawer.cell_width), drawer.cell_width);
 
         if(set) {
             context.fillStyle = drawer.cell_color;
