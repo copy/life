@@ -3,7 +3,7 @@
 # To compile, get the script from http://closure-compiler.googlecode.com/files/compiler-latest.zip
 # And put it into ~/.local or change the path below
 
-FILENAME="out.js"
+FILENAME="life-compressed.js"
 
 ls -l $FILENAME
 

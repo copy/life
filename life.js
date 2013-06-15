@@ -5,7 +5,8 @@ function LifeUniverse()
 {
     /** @const */
     var LOAD_FACTOR = .6,
-        INITIAL_SIZE = 20;
+        INITIAL_SIZE = 20,
+        HASHMAP_LIMIT = 24;
 
     var 
         // last id for nodes
@@ -684,8 +685,14 @@ function LifeUniverse()
         //console.log("collecting garbage ...");
         //var t = Date.now();
 
-        hashmap_size = hashmap_size << 1 | 1;
+        if(hashmap_size < (1 << HASHMAP_LIMIT) - 1)
+        {
+            hashmap_size = hashmap_size << 1 | 1;
+            hashmap = [];
+        }
+
         max_load = hashmap_size * LOAD_FACTOR | 0;
+
 
         for(var i = 0; i <= hashmap_size; i++)
             hashmap[i] = undefined;

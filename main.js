@@ -798,7 +798,7 @@ var pow2 = (function()
         life.set_step(10);
         max_fps = 6;
 
-        drawer.cell_width = 1 / 128;
+        drawer.cell_width = 1 / 32;
 
         life.make_center(field, bounds);
         life.setup_meta(otca_on, otca_off, field, bounds);
