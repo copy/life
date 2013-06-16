@@ -94,27 +94,27 @@ function LifeCanvasDrawer()
         }
         
         if( 
-            left + size < 0 ||
-            top + size < 0 ||
-            left >= canvas_width ||
-            top >= canvas_height
+            left + size + canvas_offset_x < 0 ||
+            top + size + canvas_offset_y < 0 ||
+            left + canvas_offset_x >= canvas_width ||
+            top + canvas_offset_y >= canvas_height
         ) {
             // do not draw outside of the screen
             return;
         }
-        
+
         if(size <= 1)
         {
             if(node.population)
             {
-                fill_square(left | 0, top | 0, 1);
+                fill_square(left + canvas_offset_x | 0, top + canvas_offset_y | 0, 1);
             }
         }
         else if(node.level === 0)
         {
             if(node.population)
             {
-                fill_square(left, top, drawer.cell_width);
+                fill_square(left + canvas_offset_x, top + canvas_offset_y, drawer.cell_width);
             }
         }
         else
@@ -191,7 +191,7 @@ function LifeCanvasDrawer()
 
         var size = Math.pow(2, node.level - 1) * drawer.cell_width;
         
-        draw_node(node, 2 * size, canvas_offset_x - size, canvas_offset_y - size);
+        draw_node(node, 2 * size, -size, -size);
 
         context.putImageData(image_data, 0, 0);
     }
@@ -280,8 +280,6 @@ function LifeCanvasDrawer()
             cell_y = y * drawer.cell_width + canvas_offset_y,
             width = Math.ceil(drawer.cell_width) - 
                 (drawer.cell_width * drawer.border_width | 0);
-
-        console.log(width, Math.ceil(drawer.cell_width), drawer.cell_width);
 
         if(set) {
             context.fillStyle = drawer.cell_color;
