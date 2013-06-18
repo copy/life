@@ -546,6 +546,14 @@
             parameters[param[0]] = param[1];
         }
 
+        if(parameters["step"])
+        {
+            var step = Math.round(Math.log(Number(parameters["step"]) || 0) / Math.LN2);
+
+            if(step > 0)
+                life.set_step(step);
+        }
+
         pattern_parameter = parameters["pattern"];
 
         if(pattern_parameter && /^[a-z0-9_\.]+$/.test(pattern_parameter))
