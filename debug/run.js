@@ -9,6 +9,13 @@ function assert(x, msg)
         print("Assert failed: " + msg);
 };
 
+var console = {
+    log : function(x)
+    {
+        print(x);
+    }
+};
+
 
 var 
     timer,
