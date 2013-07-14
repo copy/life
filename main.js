@@ -292,6 +292,11 @@
                 $("step_button").onclick();
                 return false;
             }
+            else if(chr === 9)
+            {
+                $("superstep_button").onclick();
+                return false;
+            }
             else if(chr === 189 || chr === 173 || chr === 109)
             {
                 // -
@@ -303,6 +308,27 @@
                 // + and =
                 drawer.zoom_centered(false);
                 do_redraw = true;
+            }
+            else if(chr === 8)
+            {
+                // backspace
+                $("rewind_button").onclick();
+                return false;
+            }
+            else if(chr === 219 || chr === 221)
+            {
+                // [ ]
+                var step = life.step;
+
+                if(chr === 219)
+                    step--;
+                else
+                    step++;
+
+                if(step >= 0)
+                    life.set_step(step);
+
+                return false;
             }
 
             if(do_redraw)
