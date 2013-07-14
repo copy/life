@@ -122,7 +122,7 @@
 
         window.onresize = function()
         {
-            drawer.set_size(window.innerWidth, window.innerHeight);
+            drawer.set_size(window.innerWidth, document.body.offsetHeight);
             
             lazy_redraw(life.root);
         }
@@ -526,7 +526,7 @@
         });
 
 
-        drawer.set_size(window.innerWidth, window.innerHeight);
+        drawer.set_size(window.innerWidth, document.body.offsetHeight);
 
         reset_settings();
         life.clear_pattern();
