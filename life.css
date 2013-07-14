@@ -4,6 +4,13 @@ body {
     margin: 0px;
     color: #ccc;
     font-family: sans-serif;
+    height: 100%;
+    padding: 0xp;
+}
+html {
+    height: 100%;
+    margin: 0px;
+    padding: 0xp;
 }
 #toolbar {
     position: fixed;
@@ -133,7 +140,7 @@ a:hover, .link:hover {
     overflow: auto;
 }
 canvas {
-    line-height: 1;
+    position: absolute;
 }
 #pattern_link {
     background-color: #333;
