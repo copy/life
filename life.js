@@ -46,6 +46,36 @@ function LifeUniverse()
     })();
 
 
+
+    var eval_mask = (function()
+    {
+        var counts = new Int8Array(0x758);
+
+        counts.set([0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]);
+
+        for(var i = 0x10; i < 0x758; i++)
+        {
+            counts[i] = counts[i & 0xF] + 
+                            counts[i >> 4 & 0xF] +
+                            counts[i >> 8];
+        }
+
+        return function(bitmask)
+        {
+            var rule = (bitmask & 32) ? life.rule_s : life.rule_b;
+            
+            if(rule & 1 << counts[bitmask & 0x757])
+            {
+                return true_leaf;
+            }
+            else
+            {
+                return false_leaf;
+            }
+        }
+    })();
+
+
     // current rule setting
     /** @type {number} */
     this.rule_b = 1 << 3;
@@ -254,28 +284,6 @@ function LifeUniverse()
                 eval_mask(bitmask)
             );
 
-            function eval_mask(bitmask)
-            {
-                var rule = (bitmask >> 5 & 1) ? life.rule_s : life.rule_b,
-                    neighbours = 0;
-                    
-                bitmask &= 0x757;
-                
-                while(bitmask)
-                {
-                    neighbours++;
-                    bitmask &= bitmask - 1;
-                }
-                
-                if(rule & 1 << neighbours)
-                {
-                    return true_leaf;
-                }
-                else
-                {
-                    return false_leaf;
-                }
-            }
         },
 
         next_generation : function()
@@ -714,9 +722,10 @@ function LifeUniverse()
 
         last_id = 3;
         life.root.hash();
-        //console.log("done in " + (Date.now() - t));
+
         //console.log("last id: " + last_id);
         //console.log("new hashmap size: " + hashmap_size);
+        //console.log("GC done in " + (Date.now() - t));
         //console.log("size: " + hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
     }
 
