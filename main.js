@@ -201,6 +201,16 @@
                 last_mouse_y = e.clientY;
                 
                 document.onmousemove = do_field_move;
+
+                (function redraw()
+                {
+                    if(last_mouse_x !== null)
+                    { 
+                        requestAnimationFrame(redraw);
+                    }
+
+                    lazy_redraw(life.root);
+                })();
             }
             
             return false;
@@ -209,6 +219,9 @@
         document.onmouseup = function(e)
         {
             document.onmousemove = null;
+
+            last_mouse_x = null;
+            last_mouse_y = null;
         }
         
         window.onmousemove = function(e)
@@ -661,7 +674,6 @@
                 pattern_path + random_pattern + ".rle",
                 function(text) {
                     setup_pattern(text, random_pattern);
-                    return;
                 }
             );
         }
@@ -675,7 +687,7 @@
         // loads big pattern
         
         
-        
+        /*
         http_get("examples/vgun.rle", function(text)
         //http_get("examples/p59glidergunoriginal.rle", function(text)
         //http_get("examples/stackconstructor_diag.rle", function(text)
@@ -1110,7 +1122,7 @@
 
         drawer.move(dx, dy);
 
-        lazy_redraw(life.root);
+        //lazy_redraw(life.root);
 
         last_mouse_x = e.clientX;
         last_mouse_y = e.clientY;
