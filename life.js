@@ -1,5 +1,34 @@
 "use strict";
 
+var asmlib = (function(std)
+{
+    // asm is slower for now?
+    //"use asm";
+
+    var imul = std.Math.imul;
+
+    function calc_hash(nw_id, ne_id, sw_id, se_id)
+    {
+        nw_id = nw_id | 0;
+        ne_id = ne_id | 0;
+        sw_id = sw_id | 0;
+        se_id = se_id | 0;
+
+
+        //var hash = 0;
+        //hash = hash + nw_id | 0;
+        nw_id = ne_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+        nw_id = sw_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+        nw_id = se_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+
+        return nw_id | 0;
+    }
+
+    return {
+        calc_hash : calc_hash
+    };
+})({ Math: Math });
+
 /** @constructor */
 function LifeUniverse()
 {
@@ -468,106 +497,11 @@ function LifeUniverse()
         }
     }
 
-    function calc_hash(nw, ne, sw, se)
-    {
-        //var hash = 0x1a2f,
-        //    k;
-
-        //k = nw.id * 0xcc9e2d51;
-        //k = k << 15 | k >> 17;
-        //k = k * 0x1b873593;
-        //hash = hash ^ k;
-        //hash = hash << 13 | hash >> 19;
-        //hash = hash * 5 + 0xe6546b64
-
-        //k = ne.id * 0xcc9e2d51;
-        //k = k << 15 | k >> 17;
-        //k = k * 0x1b873593;
-        //hash = hash ^ k;
-        //hash = hash << 13 | hash >> 19;
-        //hash = hash * 5 + 0xe6546b64
-
-        //k = sw.id * 0xcc9e2d51;
-        //k = k << 15 | k >> 17;
-        //k = k * 0x1b873593;
-        //hash = hash ^ k;
-        //hash = hash << 13 | hash >> 19;
-        //hash = hash * 5 + 0xe6546b64
-
-        //k = se.id * 0xcc9e2d51;
-        //k = k << 15 | k >> 17;
-        //k = k * 0x1b873593;
-        //hash = hash ^ k;
-        //hash = hash << 13 | hash >> 19;
-        //hash = hash * 5 + 0xe6546b64
-
-        //hash = hash ^ (hash >> 16);
-        //hash = hash * 0x85ebca6b;
-        //hash = hash ^ (hash >> 13);
-        //hash = hash * 0xc2b2ae35;
-        //hash = hash ^ (hash >> 16);
-
-        //var hash = nw.id + ne.id * 117 + sw.id * 1201 + se.id * 65437;
-        //hash ^= hash >> 16 ^ hash >> 7;
-
-
-        var hash = nw.id;
-        hash = ne.id + (hash << 6) + (hash << 16) - hash;
-        hash = se.id + (hash << 6) + (hash << 16) - hash;
-        hash = sw.id + (hash << 6) + (hash << 16) - hash;
-
-
-        //var hash = nw.id * 33 + 720;
-        //hash = hash * 33 + ne.id + 720;
-        //hash = hash * 33 + sw.id + 720;
-        //hash = hash * 33 + se.id + 720;
-
-
-        //var hash = 5381;
-        //hash = (hash << 5) + hash + nw.id;
-        //hash = (hash << 5) + hash + ne.id;
-        //hash = (hash << 5) + hash + sw.id;
-        //hash = (hash << 5) + hash + se.id;
-
-        //var hash = 0;
-        //hash += nw.id;
-        //hash += hash << 10;
-        //hash ^= hash >> 6;
-        //hash += ne.id;
-        //hash += hash << 10;
-        //hash ^= hash >> 6;
-        //hash += sw.id;
-        //hash += hash << 10;
-        //hash ^= hash >> 6;
-        //hash += se.id;
-        //hash += hash << 10;
-        //hash ^= hash >> 6;
-
-        //var hash = 2166136261;
-        //hash ^= nw.id;
-        //hash = hash * 16777619;
-        //hash ^= ne.id;
-        //hash = hash * 16777619;
-        //hash ^= sw.id;
-        //hash = hash * 16777619;
-        //hash ^= se.id;
-        //hash = hash * 16777619;
-        
-        //var hash = nw.id;
-        //hash *= 37;
-        //hash += ne.id;
-        //hash *= 37;
-        //hash += sw.id;
-        //hash *= 37;
-        //hash += se.id;
-
-        return hash;
-    }
 
     // Hash a node, return false if it was hashed before.
     function add_hash(n)
     {
-        var hash = calc_hash(n.nw, n.ne, n.sw, n.se);
+        var hash = asmlib.calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id);
 
         for(var node;;)
         {
@@ -598,7 +532,7 @@ function LifeUniverse()
 
     function create_tree(nw, ne, sw, se)
     {
-        var hash = calc_hash(nw, ne, sw, se);
+        var hash = asmlib.calc_hash(nw.id, ne.id, sw.id, se.id);
 
         for(var node;;)
         {
@@ -750,7 +684,7 @@ function LifeUniverse()
 
             if(node !== undefined)
             {
-                hash = calc_hash(node.nw, node.ne, node.sw, node.se);
+                hash = asmlib.calc_hash(node.nw.id, node.ne.id, node.sw.id, node.se.id);
 
                 for(;;)
                 {

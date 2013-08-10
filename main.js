@@ -552,9 +552,9 @@
         });
 
 
+        reset_settings();
         drawer.set_size(window.innerWidth, document.body.offsetHeight);
 
-        reset_settings();
         life.clear_pattern();
         
         // production setup
@@ -661,6 +661,7 @@
                 pattern_path + random_pattern + ".rle",
                 function(text) {
                     setup_pattern(text, random_pattern);
+                    return;
                 }
             );
         }
@@ -674,7 +675,7 @@
         // loads big pattern
         
         
-        /*
+        
         http_get("examples/vgun.rle", function(text)
         //http_get("examples/p59glidergunoriginal.rle", function(text)
         //http_get("examples/stackconstructor_diag.rle", function(text)
