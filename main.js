@@ -490,6 +490,7 @@
 
             style_element.appendChild(style_text);
 
+            $("pattern_name").style.color = 
             $("statusbar").style.color = drawer.cell_color;
             $("statusbar").style.textShadow = "0px 0px 1px " + drawer.cell_color;
 
