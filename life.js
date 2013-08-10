@@ -63,13 +63,18 @@ function LifeUniverse()
 
     var pow2 = (function()
     {
-        var powers = new Float64Array(500);
+        var powers = new Float64Array(1024);
 
-        for(var i = 0; i < 500; i++)
-            powers[i] = Math.pow(2, i);
+        powers[0] = 1;
+
+        for(var i = 1; i < 1024; i++)
+            powers[i] = powers[i - 1] * 2;
 
         return function(x)
         {
+            if(x > 1024)
+                return Infinity;
+
             return powers[x];
         };
     })();
