@@ -965,10 +965,10 @@
             set_text($("label_fps"), fps.toFixed(1));
         }
 
-        set_text($("label_gen"), life.generation);
+        set_text($("label_gen"), Number.format_thousands(life.generation, "\u202f"));
         fix_width($("label_gen"));
 
-        set_text($("label_pop"), life.root.population);
+        set_text($("label_pop"), Number.format_thousands(life.root.population, "\u202f"));
         fix_width($("label_pop"));
 
         if(drawer.cell_width >= 1)
@@ -1126,7 +1126,7 @@
         if(coords.x !== last_mouse_x || coords.y !== last_mouse_y)
         {
             life.set_bit(coords.x, coords.y, mouse_set);
-            set_text($("label_pop"), life.root.population);
+            update_hud(false);
 
             drawer.draw_cell(coords.x, coords.y, mouse_set);
             last_mouse_x = coords.x;
@@ -1165,6 +1165,45 @@
     {
         node.style.display = "block";
     }
+
+    function pad0(str, n)
+    { 
+        while(str.length < n) 
+        {
+            str = "0" + str; 
+        }
+
+        return str;
+    }
+
+    // Put sep as a seperator into the thousands spaces of and Integer n
+    // Doesn't handle numbers >= 10^21
+    Number.format_thousands = function(n, sep) 
+    {
+        if(n < 0) 
+        {
+            return "-" + Number.format_thousands(-n, sep);
+        }
+
+        if(Number.isNaN(n) || !Number.isFinite(n) || n >= 1e21)
+        {
+            return n + "";
+        }
+
+        function format(str)
+        {
+            if(str.length < 3)
+            {
+                return str;
+            }
+            else
+            {
+                return format(str.slice(0, -3)) + sep + str.slice(-3);
+            }
+        }
+
+        return format(n + "");
+    };
 
 
 })();
