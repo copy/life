@@ -203,6 +203,7 @@
             {
                 last_mouse_x = e.clientX;
                 last_mouse_y = e.clientY;
+                //console.log("start", e.clientX, e.clientY);
                 
                 window.addEventListener("mousemove", do_field_move, true);
 
@@ -219,11 +220,47 @@
             
             return false;
         };
+
+        drawer.canvas.addEventListener("touchstart", function(e)
+        {
+            // left mouse simulation
+            var ev = {
+                which: 1,
+                clientX: e.changedTouches[0].clientX,
+                clientY: e.changedTouches[0].clientY,
+            };
+
+            drawer.canvas.onmousedown(ev);
+
+            e.preventDefault();
+        }, false);
+
+        drawer.canvas.addEventListener("touchmove", function(e)
+        {
+            var ev = {
+                clientX: e.changedTouches[0].clientX,
+                clientY: e.changedTouches[0].clientY,
+            };
+
+            do_field_move(ev);
+
+            e.preventDefault();
+        }, false);
+
+        drawer.canvas.addEventListener("touchend", function(e)
+        {
+            window.onmouseup(e);
+            e.preventDefault();
+        }, false);
+
+        drawer.canvas.addEventListener("touchcancel", function(e)
+        {
+            window.onmouseup(e);
+            e.preventDefault();
+        }, false);
         
         window.onmouseup = function(e)
         {
-            //document.onmousemove = null;
-
             last_mouse_x = null;
             last_mouse_y = null;
 
@@ -1205,7 +1242,7 @@
             return "-" + Number.format_thousands(-n, sep);
         }
 
-        if(Number.isNaN(n) || !Number.isFinite(n) || n >= 1e21)
+        if(isNaN(n) || !isFinite(n) || n >= 1e21)
         {
             return n + "";
         }
