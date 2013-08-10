@@ -44,6 +44,8 @@
         last_mouse_x,
         last_mouse_y,
 
+        mouse_set,
+
         // is the game running ?
         /** @type {boolean} */
         running = false,
@@ -66,6 +68,7 @@
         pattern_path = "examples/",
 
         loaded = false,
+
 
         life = new LifeUniverse(),
         drawer = new LifeCanvasDrawer(),
@@ -120,12 +123,12 @@
         var style_element = document.createElement("style");
         document.head.appendChild(style_element);
 
-        window.onresize = function()
+        window.onresize = debounce(function()
         {
             drawer.set_size(window.innerWidth, document.body.offsetHeight);
             
-            lazy_redraw(life.root);
-        }
+            requestAnimationFrame(lazy_redraw.bind(0, life.root));
+        }, 200);
         
         $("run_button").onclick = function()
         {
@@ -189,18 +192,19 @@
         {
             if(e.which === 3 || e.which === 2)
             {
-                var coords = drawer.pixel2cell(e.clientX, e.clientY),
-                    mouse_set = !life.get_bit(coords.x, coords.y);
+                var coords = drawer.pixel2cell(e.clientX, e.clientY);
+
+                mouse_set = !life.get_bit(coords.x, coords.y);
                 
-                document.onmousemove = do_field_draw.bind(this, mouse_set);
-                do_field_draw(mouse_set, e);
+                window.addEventListener("mousemove", do_field_draw, true);
+                do_field_draw(e);
             }
             else if(e.which === 1)
             {
                 last_mouse_x = e.clientX;
                 last_mouse_y = e.clientY;
                 
-                document.onmousemove = do_field_move;
+                window.addEventListener("mousemove", do_field_move, true);
 
                 (function redraw()
                 {
@@ -216,12 +220,15 @@
             return false;
         };
         
-        document.onmouseup = function(e)
+        window.onmouseup = function(e)
         {
-            document.onmousemove = null;
+            //document.onmousemove = null;
 
             last_mouse_x = null;
             last_mouse_y = null;
+
+            window.removeEventListener("mousemove", do_field_draw, true);
+            window.removeEventListener("mousemove", do_field_move, true);
         }
         
         window.onmousemove = function(e)
@@ -1131,7 +1138,7 @@
     /*
      * The mousemove event which draw pixels
      */
-    function do_field_draw(mouse_set, e)
+    function do_field_draw(e)
     {
         var coords = drawer.pixel2cell(e.clientX, e.clientY);
 
@@ -1217,6 +1224,25 @@
 
         return format(n + "");
     };
+
+
+    function debounce(func, timeout) 
+    {
+        var timeout_id;
+
+        return function() 
+        {
+            var me = this,
+                args = arguments;
+
+            clearTimeout(timeout_id);
+
+            timeout_id = setTimeout(function() 
+            {
+                func.apply(me, Array.prototype.slice.call(args));
+            }, timeout);
+        }
+    }
 
 
 })();

@@ -72,7 +72,7 @@ function LifeUniverse()
 
         return function(x)
         {
-            if(x > 1024)
+            if(x >= 1024)
                 return Infinity;
 
             return powers[x];
