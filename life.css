@@ -1,5 +1,4 @@
 body {
-    overflow: hidden;
     background-color: #000;
     margin: 0px;
     color: #ccc;
@@ -21,6 +20,7 @@ html {
 #toolbar > div{
     float: right;
 }
+
 #statusbar > div {
     float: right;
     border-left: 1px solid #ccc;
@@ -76,17 +76,30 @@ html {
 #overlay {
     background-color: #000;
     position: absolute;
-    width: 500px;
-    top: 80px;
-    left: 50%;
-    margin-left: -300px; 
-    border: 2px solid #444;
-    border-radius: 15px;
-    padding: 50px;
+    top: 50px;
+    padding: 20px 5px 50px;
     font-size: 12px;
     color: #ddd;
     z-index: 10;
     line-height: 1.4;
+    border-style: solid;
+    border-color: #444;
+    border-width: 2px 0px;
+}
+@media (min-width: 600px) {
+    #overlay {
+        border-width: 2px;
+        border-radius: 15px;
+        left: 50%;
+        margin-left: -300px; 
+        width: 500px;
+        padding: 50px;
+    }
+}
+@media (max-width: 600px) {
+    #zoomout_button, #zoomin_button, #examples_menu, #label_mou {
+        display: none;
+    }
 }
 #pattern_name {
     cursor: pointer;
