@@ -2,12 +2,21 @@ load("../life.js");
 load("../formats.js");
 
 load("gemini.js"); // defines gemini_rle
+load("primer.js"); // defines primer_rle
+
 
 function assert(x, msg) 
 { 
     if(!x) 
         print("Assert failed: " + msg);
-};
+}
+
+function measure(name, f)
+{
+    var timer = Date.now();
+    f();
+    console.log(name + ": " + (Date.now() - timer));
+}
 
 var console = {
     log : function(x)
@@ -17,40 +26,112 @@ var console = {
 };
 
 
-var 
-    timer,
-    life = new LifeUniverse(),
-    pattern,
-    bounds;
+
+function load_and_run(pattern_str, name, tests)
+{
+    var timer,
+        life = new LifeUniverse(),
+        pattern,
+        bounds;
 
 
-timer = Date.now();
-pattern = formats.parse_pattern(gemini_rle);
-print("parse_pattern " + (Date.now() - timer));
+    print("Testing: " + name);
 
-bounds = life.get_bounds(pattern.field);
+    timer = Date.now();
+    pattern = formats.parse_pattern(pattern_str);
+    print("  parse_pattern " + (Date.now() - timer));
 
-assert(!pattern.error, pattern.error);
+    bounds = life.get_bounds(pattern.field);
 
-
-life.clear_pattern();
-
-life.make_center(pattern.field, bounds);
-
-timer = Date.now();
-life.setup_field(pattern.field, bounds);
-print("setup_field " + (Date.now() - timer));
-
-timer = Date.now();
-
-for(var i = 0; i < 5; i++)
-    life.next_generation(true);
-
-print("next_generation " + (Date.now() - timer));
+    assert(!pattern.error, pattern.error);
 
 
-life.set_step(8); // 256 generations at once
+    life.clear_pattern();
 
-timer = Date.now();
-life.next_generation(true);
-print("next_generation quick " + (Date.now() - timer));
+    life.make_center(pattern.field, bounds);
+
+    timer = Date.now();
+    life.setup_field(pattern.field, bounds);
+    print("  setup_field " + (Date.now() - timer));
+
+    for(var i = 0; i < tests.length; i++)
+    {
+        timer = Date.now();
+
+        var rep = tests[i].repetitions || 1;
+
+        for(var j = 0; j < rep; j++)
+            tests[i].f(life);
+
+        print("  " + tests[i].name + ": " + (Date.now() - timer));
+    }
+
+    print("");
+}
+
+
+load_and_run(
+    gemini_rle,
+    "gemini",
+    [
+        {
+            name: "next generation",
+            f: function(life) { 
+                life.next_generation(true);
+            },
+            repetitions: 5
+        },
+
+        {
+            name: "256 generations",
+            f: function(life) { 
+                life.set_step(8); // 256 generations at once
+
+                for(var i = 0; i < 5; i++)
+                    life.next_generation(true);
+            },
+        },
+
+        {
+            name: "4096 generations",
+            f: function(life) { 
+                life.set_step(12); 
+
+                life.next_generation(true);
+            },
+        },
+    ]
+);
+
+
+load_and_run(
+    primer_rle,
+    "primer",
+    [
+        {
+            name: "next generation",
+            f: function(life) { 
+                life.next_generation(true);
+            },
+            repetitions: 5000
+        },
+
+        {
+            name: "256 generations",
+            f: function(life) { 
+                life.set_step(8); // 256 generations at once
+
+                for(var i = 0; i < 500; i++)
+                    life.next_generation(true);
+            },
+        },
+
+        {
+            name: "q generation",
+            f: function(life) { 
+
+                life.next_generation(false);
+            },
+        },
+    ]
+);
