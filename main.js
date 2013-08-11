@@ -609,7 +609,7 @@
 
             $("import_submit").onclick = function()
             {
-                var previous = current_pattern.title;
+                var previous = current_pattern && current_pattern.title;
 
                 setup_pattern($("import_text").value, false);
 
