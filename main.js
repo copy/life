@@ -361,6 +361,16 @@
                     });
                 }
             }
+
+            drawer.canvas.ondblclick = function(e)
+            {
+                drawer.zoom(false, e.clientX, e.clientY);
+
+                update_hud();
+                lazy_redraw(life.root);
+                return false;
+            };
+
             
             drawer.canvas.onmousedown = function(e)
             {
@@ -1198,7 +1208,7 @@
         if(coords.x !== last_mouse_x || coords.y !== last_mouse_y)
         {
             life.set_bit(coords.x, coords.y, mouse_set);
-            update_hud(false);
+            update_hud();
 
             drawer.draw_cell(coords.x, coords.y, mouse_set);
             last_mouse_x = coords.x;
