@@ -103,7 +103,6 @@
 
         loaded = true;
 
-
         if(!drawer.init(document.body))
         {
             set_text($("notice").getElementsByTagName("h4")[0], 
@@ -111,507 +110,10 @@
             return;
         }
 
-        
-        $("about_close").style.display = "inline";
+        init_ui();       
 
-        hide_element($("notice"));
-        hide_element($("overlay"));
-
-        show_element($("toolbar"));
-        show_element($("statusbar"));
-
-        var style_element = document.createElement("style");
-        document.head.appendChild(style_element);
-
-        window.onresize = debounce(function()
-        {
-            drawer.set_size(window.innerWidth, document.body.offsetHeight);
-            
-            requestAnimationFrame(lazy_redraw.bind(0, life.root));
-        }, 200);
-        
-        $("run_button").onclick = function()
-        {
-            if(running)
-            {
-                stop();
-            }
-            else
-            {
-                run();
-            }
-        };
-        
-        $("step_button").onclick = function()
-        {
-            if(!running)
-            {
-                step(true);
-            }
-        };
-
-        $("superstep_button").onclick = function()
-        {
-            if(!running)
-            {
-                step(false);
-            }
-        };
-        
-        $("clear_button").onclick = function()
-        {
-            stop(function()
-            {
-                set_text($("pattern_name"), "");
-                set_query("");
-
-                life.clear_pattern();
-                update_hud();
-
-                drawer.center_view();
-                drawer.redraw(life.root);
-            });
-        };
-        
-        $("rewind_button").onclick = function()
-        {
-            if(rewind_state)
-            {
-                stop(function()
-                {
-                    life.root = rewind_state;
-                    life.generation = 0;
-            
-                    drawer.redraw(life.root);
-                    update_hud();
-                });
-            }
-        }
-        
-        drawer.canvas.onmousedown = function(e)
-        {
-            if(e.which === 3 || e.which === 2)
-            {
-                var coords = drawer.pixel2cell(e.clientX, e.clientY);
-
-                mouse_set = !life.get_bit(coords.x, coords.y);
-                
-                window.addEventListener("mousemove", do_field_draw, true);
-                do_field_draw(e);
-            }
-            else if(e.which === 1)
-            {
-                last_mouse_x = e.clientX;
-                last_mouse_y = e.clientY;
-                //console.log("start", e.clientX, e.clientY);
-                
-                window.addEventListener("mousemove", do_field_move, true);
-
-                (function redraw()
-                {
-                    if(last_mouse_x !== null)
-                    { 
-                        requestAnimationFrame(redraw);
-                    }
-
-                    lazy_redraw(life.root);
-                })();
-            }
-            
-            return false;
-        };
-
-        drawer.canvas.addEventListener("touchstart", function(e)
-        {
-            // left mouse simulation
-            var ev = {
-                which: 1,
-                clientX: e.changedTouches[0].clientX,
-                clientY: e.changedTouches[0].clientY,
-            };
-
-            drawer.canvas.onmousedown(ev);
-
-            e.preventDefault();
-        }, false);
-
-        drawer.canvas.addEventListener("touchmove", function(e)
-        {
-            var ev = {
-                clientX: e.changedTouches[0].clientX,
-                clientY: e.changedTouches[0].clientY,
-            };
-
-            do_field_move(ev);
-
-            e.preventDefault();
-        }, false);
-
-        drawer.canvas.addEventListener("touchend", function(e)
-        {
-            window.onmouseup(e);
-            e.preventDefault();
-        }, false);
-
-        drawer.canvas.addEventListener("touchcancel", function(e)
-        {
-            window.onmouseup(e);
-            e.preventDefault();
-        }, false);
-        
-        window.onmouseup = function(e)
-        {
-            last_mouse_x = null;
-            last_mouse_y = null;
-
-            window.removeEventListener("mousemove", do_field_draw, true);
-            window.removeEventListener("mousemove", do_field_move, true);
-        }
-        
-        window.onmousemove = function(e)
-        {
-            var coords = drawer.pixel2cell(e.clientX, e.clientY);
-            
-            set_text($("label_mou"), coords.x + ", " + coords.y);
-            fix_width($("label_mou"));
-        }
-        
-        drawer.canvas.oncontextmenu = function(e)
-        {
-            return false;
-        };
-        
-        drawer.canvas.onmousewheel = function(e)
-        {
-            drawer.zoom((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
-
-            update_hud();
-            lazy_redraw(life.root);
-            return false;
-        }
-        
-        drawer.canvas.addEventListener("DOMMouseScroll", drawer.canvas.onmousewheel, false); 
-
-        window.onkeydown = function(e)
-        {
-            var chr = e.which,
-                do_redraw = false,
-                target = e.target.nodeName;
-
-            //console.log(e.target)
-            //console.log(chr + " " + e.charCode + " " + e.keyCode);
-
-            if(target === "INPUT" || target === "TEXTAREA")
-            {
-                return true;
-            }
-
-            if(e.ctrlKey || e.shiftKey || e.altKey)
-            {
-                return true;
-            }
-            
-            if(chr === 37 || chr === 72)
-            {
-                drawer.move(15, 0);
-                do_redraw = true;
-            }
-            else if(chr === 38 || chr === 75)
-            {
-                drawer.move(0, 15);
-                do_redraw = true;
-            }
-            else if(chr === 39 || chr === 76)
-            {
-                drawer.move(-15, 0);
-                do_redraw = true;
-            }
-            else if(chr === 40 || chr === 74)
-            {
-                drawer.move(0, -15);
-                do_redraw = true;
-            }
-            else if(chr === 27)
-            {
-                // escape
-                hide_element($("overlay"));
-                return false;
-            }
-            else if(chr === 13)
-            {
-                // enter
-                $("run_button").onclick();
-                return false;
-            }
-            else if(chr === 32)
-            {
-                // space
-                $("step_button").onclick();
-                return false;
-            }
-            else if(chr === 9)
-            {
-                $("superstep_button").onclick();
-                return false;
-            }
-            else if(chr === 189 || chr === 173 || chr === 109)
-            {
-                // -
-                drawer.zoom_centered(true);
-                do_redraw = true;
-            }
-            else if(chr === 187 || chr === 61)
-            {
-                // + and =
-                drawer.zoom_centered(false);
-                do_redraw = true;
-            }
-            else if(chr === 8)
-            {
-                // backspace
-                $("rewind_button").onclick();
-                return false;
-            }
-            else if(chr === 219 || chr === 221)
-            {
-                // [ ]
-                var step = life.step;
-
-                if(chr === 219)
-                    step--;
-                else
-                    step++;
-
-                if(step >= 0)
-                    life.set_step(step);
-
-                return false;
-            }
-
-            if(do_redraw)
-            {
-                lazy_redraw(life.root);
-
-                return false;
-            }
-
-            return true;
-        };
-
-        $("zoomin_button").onclick = function()
-        {
-            drawer.zoom_centered(false);
-            update_hud();
-            lazy_redraw(life.root);
-        };
-
-        $("zoomout_button").onclick = function()
-        {
-            drawer.zoom_centered(true);
-            update_hud();
-            lazy_redraw(life.root);
-        };
-
-        var select_rules = $("select_rules").getElementsByTagName("span");
-
-        for(var i = 0; i < select_rules.length; i++)
-        {
-            /** @this {Element} */
-            select_rules[i].onclick = function()
-            {
-                $("rule").value = this.getAttribute("data-rule");
-            };
-        }
-
-        $("import_submit").onclick = function()
-        {
-            var previous = current_pattern.title;
-
-            setup_pattern($("import_text").value, false);
-
-            if(previous !== current_pattern.title) {
-                show_alert(current_pattern);
-            }
-        };
-
-        $("import_abort").onclick = function()
-        {
-            hide_element($("overlay"));
-        };
-
-        $("import_button").onclick = function()
-        {
-            show_overlay("import_dialog");
-            $("import_text").value = "";
-            
-            set_text($("import_info"), "");
-        };
-
-        $("settings_submit").onclick = function()
-        {
-            var new_rule_s,
-                new_rule_b,
-                new_gen_step;
-            
-            hide_element($("overlay"));
-            
-            new_rule_s = formats.parse_rule($("rule").value, true);
-            new_rule_b = formats.parse_rule($("rule").value, false);
-
-            new_gen_step = Math.round(Math.log(Number($("gen_step").value) || 0) / Math.LN2);
-            
-            life.set_rules(new_rule_s, new_rule_b);
-
-            if(!new_gen_step || new_gen_step < 0) {
-                life.set_step(0);
-            }
-            else {
-                life.set_step(new_gen_step);
-            }
-            
-            max_fps = Number($("max_fps").value);
-            if(!max_fps || max_fps < 0) {
-                max_fps = 30;
-            }
-            
-            drawer.border_width = parseFloat($("border_width").value);
-            if(isNaN(drawer.border_width) || drawer.border_width < 0 || drawer.border_width > .5) 
-            {
-                drawer.border_width = .2;
-            }
-
-            drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
-            drawer.background_color = validate_color($("background_color").value) || "#000";
-            var style_text = document.createTextNode(
-                ".button,.menu>div{background-color:" + drawer.cell_color +
-                ";box-shadow:2px 2px 4px " + drawer.cell_color + "}" +
-                "#statusbar>div{border-color:" + drawer.cell_color + "}"
-            );
-
-            style_element.appendChild(style_text);
-
-            $("pattern_name").style.color = 
-            $("statusbar").style.color = drawer.cell_color;
-            $("statusbar").style.textShadow = "0px 0px 1px " + drawer.cell_color;
-
-            $("toolbar").style.color = drawer.background_color;
-            
-            lazy_redraw(life.root);
-        }
-
-        $("settings_reset").onclick = function()
-        {
-            reset_settings();
-            
-            lazy_redraw(life.root);
-            
-            hide_element($("overlay"));
-        }
-
-        $("settings_button").onclick = function()
-        {
-            show_overlay("settings_dialog");
-            
-            $("rule").value = formats.rule2str(life.rule_s, life.rule_b);
-            $("max_fps").value = max_fps;
-            $("gen_step").value = Math.pow(2, life.step);
-
-            $("border_width").value = drawer.border_width;
-            $("cell_color").value = drawer.cell_color;
-            $("background_color").value = drawer.background_color;
-        };
-
-        $("settings_abort").onclick = 
-            $("pattern_close").onclick = 
-            $("alert_close").onclick = 
-            $("about_close").onclick = function()
-        {
-            hide_element($("overlay"));
-        };
-
-        $("pattern_name").onclick = function()
-        {
-            show_alert(current_pattern);
-        };
-
-        $("about_button").onclick = function()
-        {
-            show_overlay("about");
-        };
-
-        $("more_button").onclick = function()
-        {
-            show_overlay("pattern_chooser");
-
-            if(patterns_loaded)
-            {
-                return;
-            }
-
-            patterns_loaded = true;
-
-            http_get(pattern_path + "list", function(text) 
-            {
-                var patterns = text.split("\n"),
-                    list = $("pattern_list");
-
-                patterns.forEach(function(pattern)
-                {
-                    var 
-                        name = pattern.split(" ")[0],
-                        size = pattern.split(" ")[1],
-                        name_element = document.createElement("div"),
-                        size_element = document.createElement("span");
-
-                    set_text(name_element, name);
-                    set_text(size_element, size);
-                    size_element.className = "size";
-
-                    name_element.appendChild(size_element);
-                    list.appendChild(name_element);
-
-                    name_element.onclick = function()
-                    {
-                        http_get(pattern_path + name + ".rle", function(text)
-                        {
-                            setup_pattern(text, name);
-                            set_query(name);
-                            show_alert(current_pattern);
-                            
-                            life.set_step(0);
-                        });
-                    }
-                });
-            });
-        };
-
-        var examples_menu = $("examples_menu");
-
-        examples.forEach(function(example)
-        {
-            var file = example.split(",")[0],
-                name = example.split(",")[1],
-
-                menu = document.createElement("div");
-
-            set_text(menu, name);
-            
-            menu.onclick = function() 
-            {
-                http_get(pattern_path + file + ".rle", function(text)
-                {
-                    setup_pattern(text, file);
-                    set_query(file);
-                    show_alert(current_pattern);
-                });
-            }
-            
-            examples_menu.appendChild(menu);
-        });
-
-
-        reset_settings();
         drawer.set_size(window.innerWidth, document.body.offsetHeight);
+        reset_settings();
 
         life.clear_pattern();
         
@@ -643,67 +145,14 @@
         {
             if(parameters["meta"] === "1")
             {
-                var otca_on, otca_off, otca_pattern
-
-                http_get_multiple([
-                    {
-                        url : pattern_path + "otcametapixel.rle", 
-                        onready : function(result)
-                        {
-                            var field = formats.parse_rle(result).field;
-
-                            life.move_field(field, -5, -5);
-                            life.setup_field(field);
-
-                            otca_on = life.root.se.nw;
-                        }
-                    },
-                    {
-                        url : pattern_path + "otcametapixeloff.rle", 
-                        onready : function(result)
-                        {
-                            var field = formats.parse_rle(result).field;
-
-                            life.move_field(field, -5, -5);
-                            life.setup_field(field);
-
-                            otca_off = life.root.se.nw;
-                        }
-                    },
-                    {
-                        url : pattern_path + pattern_parameter + ".rle",
-                        onready : function(result)
-                        {
-                            otca_pattern = formats.parse_rle(result).field;
-                        }
-                    }
-                ],
-                function()
-                {
-                    load_otca(otca_on, otca_off, otca_pattern);
-                },
-                function()
-                {
-                    // fallback to random pattern
-                    load_random();
-                });
+                try_load_meta();
             }
             else
             {
                 // a pattern name has been given as a parameter
                 // try to load it, fallback to random pattern 
 
-                http_get(
-                    pattern_path + pattern_parameter + ".rle", 
-                    function(text)
-                    {
-                        setup_pattern(text, pattern_parameter);
-                    },
-                    function()
-                    {
-                        load_random();
-                    }
-                );
+                try_load_pattern();
             }
         }
         else
@@ -711,17 +160,6 @@
             load_random();
         }
 
-        function load_random()
-        {
-            var random_pattern = examples[Math.random() * examples.length | 0].split(",")[0];
-
-            http_get(
-                pattern_path + random_pattern + ".rle",
-                function(text) {
-                    setup_pattern(text, random_pattern);
-                }
-            );
-        }
 
         /*for(var i = 10; i < 100; i++)
             for(var j = 10; j < 100; j++)
@@ -769,6 +207,582 @@
 
         });
         /* */
+
+        function try_load_meta()
+        {
+            var otca_on, otca_off, otca_pattern;
+
+            http_get_multiple([
+                {
+                    url : pattern_path + "otcametapixel.rle", 
+                    onready : function(result)
+                    {
+                        var field = formats.parse_rle(result).field;
+
+                        life.move_field(field, -5, -5);
+                        life.setup_field(field);
+
+                        otca_on = life.root.se.nw;
+                    }
+                },
+                {
+                    url : pattern_path + "otcametapixeloff.rle", 
+                    onready : function(result)
+                    {
+                        var field = formats.parse_rle(result).field;
+
+                        life.move_field(field, -5, -5);
+                        life.setup_field(field);
+
+                        otca_off = life.root.se.nw;
+                    }
+                },
+                {
+                    url : pattern_path + pattern_parameter + ".rle",
+                    onready : function(result)
+                    {
+                        otca_pattern = formats.parse_rle(result).field;
+                    }
+                }
+            ],
+            function()
+            {
+                load_otca(otca_on, otca_off, otca_pattern);
+            },
+            function()
+            {
+                // fallback to random pattern
+                load_random();
+            });
+        }
+
+        function try_load_pattern()
+        {
+            http_get(
+                pattern_path + pattern_parameter + ".rle", 
+                function(text)
+                {
+                    setup_pattern(text, pattern_parameter);
+                },
+                function()
+                {
+                    load_random();
+                }
+            );
+        }
+
+        function load_random()
+        {
+            var random_pattern = examples[Math.random() * examples.length | 0].split(",")[0];
+
+            http_get(
+                pattern_path + random_pattern + ".rle",
+                function(text) {
+                    setup_pattern(text, random_pattern);
+                }
+            );
+        }
+
+
+        function init_ui()
+        {
+            $("about_close").style.display = "inline";
+
+            hide_element($("notice"));
+            hide_element($("overlay"));
+
+            show_element($("toolbar"));
+            show_element($("statusbar"));
+
+            var style_element = document.createElement("style");
+            document.head.appendChild(style_element);
+
+            window.onresize = debounce(function()
+            {
+                drawer.set_size(window.innerWidth, document.body.offsetHeight);
+                
+                requestAnimationFrame(lazy_redraw.bind(0, life.root));
+            }, 200);
+            
+            $("run_button").onclick = function()
+            {
+                if(running)
+                {
+                    stop();
+                }
+                else
+                {
+                    run();
+                }
+            };
+            
+            $("step_button").onclick = function()
+            {
+                if(!running)
+                {
+                    step(true);
+                }
+            };
+
+            $("superstep_button").onclick = function()
+            {
+                if(!running)
+                {
+                    step(false);
+                }
+            };
+            
+            $("clear_button").onclick = function()
+            {
+                stop(function()
+                {
+                    set_text($("pattern_name"), "");
+                    set_query("");
+
+                    life.clear_pattern();
+                    update_hud();
+
+                    drawer.center_view();
+                    drawer.redraw(life.root);
+                });
+            };
+            
+            $("rewind_button").onclick = function()
+            {
+                if(rewind_state)
+                {
+                    stop(function()
+                    {
+                        life.root = rewind_state;
+                        life.generation = 0;
+                
+                        drawer.redraw(life.root);
+                        update_hud();
+                    });
+                }
+            }
+            
+            drawer.canvas.onmousedown = function(e)
+            {
+                if(e.which === 3 || e.which === 2)
+                {
+                    var coords = drawer.pixel2cell(e.clientX, e.clientY);
+
+                    mouse_set = !life.get_bit(coords.x, coords.y);
+                    
+                    window.addEventListener("mousemove", do_field_draw, true);
+                    do_field_draw(e);
+                }
+                else if(e.which === 1)
+                {
+                    last_mouse_x = e.clientX;
+                    last_mouse_y = e.clientY;
+                    //console.log("start", e.clientX, e.clientY);
+                    
+                    window.addEventListener("mousemove", do_field_move, true);
+
+                    (function redraw()
+                    {
+                        if(last_mouse_x !== null)
+                        { 
+                            requestAnimationFrame(redraw);
+                        }
+
+                        lazy_redraw(life.root);
+                    })();
+                }
+                
+                return false;
+            };
+
+            drawer.canvas.addEventListener("touchstart", function(e)
+            {
+                // left mouse simulation
+                var ev = {
+                    which: 1,
+                    clientX: e.changedTouches[0].clientX,
+                    clientY: e.changedTouches[0].clientY,
+                };
+
+                drawer.canvas.onmousedown(ev);
+
+                e.preventDefault();
+            }, false);
+
+            drawer.canvas.addEventListener("touchmove", function(e)
+            {
+                var ev = {
+                    clientX: e.changedTouches[0].clientX,
+                    clientY: e.changedTouches[0].clientY,
+                };
+
+                do_field_move(ev);
+
+                e.preventDefault();
+            }, false);
+
+            drawer.canvas.addEventListener("touchend", function(e)
+            {
+                window.onmouseup(e);
+                e.preventDefault();
+            }, false);
+
+            drawer.canvas.addEventListener("touchcancel", function(e)
+            {
+                window.onmouseup(e);
+                e.preventDefault();
+            }, false);
+            
+            window.onmouseup = function(e)
+            {
+                last_mouse_x = null;
+                last_mouse_y = null;
+
+                window.removeEventListener("mousemove", do_field_draw, true);
+                window.removeEventListener("mousemove", do_field_move, true);
+            }
+            
+            window.onmousemove = function(e)
+            {
+                var coords = drawer.pixel2cell(e.clientX, e.clientY);
+                
+                set_text($("label_mou"), coords.x + ", " + coords.y);
+                fix_width($("label_mou"));
+            }
+            
+            drawer.canvas.oncontextmenu = function(e)
+            {
+                return false;
+            };
+            
+            drawer.canvas.onmousewheel = function(e)
+            {
+                drawer.zoom((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
+
+                update_hud();
+                lazy_redraw(life.root);
+                return false;
+            }
+            
+            drawer.canvas.addEventListener("DOMMouseScroll", drawer.canvas.onmousewheel, false); 
+
+            window.onkeydown = function(e)
+            {
+                var chr = e.which,
+                    do_redraw = false,
+                    target = e.target.nodeName;
+
+                //console.log(e.target)
+                //console.log(chr + " " + e.charCode + " " + e.keyCode);
+
+                if(target === "INPUT" || target === "TEXTAREA")
+                {
+                    return true;
+                }
+
+                if(e.ctrlKey || e.shiftKey || e.altKey)
+                {
+                    return true;
+                }
+                
+                if(chr === 37 || chr === 72)
+                {
+                    drawer.move(15, 0);
+                    do_redraw = true;
+                }
+                else if(chr === 38 || chr === 75)
+                {
+                    drawer.move(0, 15);
+                    do_redraw = true;
+                }
+                else if(chr === 39 || chr === 76)
+                {
+                    drawer.move(-15, 0);
+                    do_redraw = true;
+                }
+                else if(chr === 40 || chr === 74)
+                {
+                    drawer.move(0, -15);
+                    do_redraw = true;
+                }
+                else if(chr === 27)
+                {
+                    // escape
+                    hide_element($("overlay"));
+                    return false;
+                }
+                else if(chr === 13)
+                {
+                    // enter
+                    $("run_button").onclick();
+                    return false;
+                }
+                else if(chr === 32)
+                {
+                    // space
+                    $("step_button").onclick();
+                    return false;
+                }
+                else if(chr === 9)
+                {
+                    $("superstep_button").onclick();
+                    return false;
+                }
+                else if(chr === 189 || chr === 173 || chr === 109)
+                {
+                    // -
+                    drawer.zoom_centered(true);
+                    do_redraw = true;
+                }
+                else if(chr === 187 || chr === 61)
+                {
+                    // + and =
+                    drawer.zoom_centered(false);
+                    do_redraw = true;
+                }
+                else if(chr === 8)
+                {
+                    // backspace
+                    $("rewind_button").onclick();
+                    return false;
+                }
+                else if(chr === 219 || chr === 221)
+                {
+                    // [ ]
+                    var step = life.step;
+
+                    if(chr === 219)
+                        step--;
+                    else
+                        step++;
+
+                    if(step >= 0)
+                        life.set_step(step);
+
+                    return false;
+                }
+
+                if(do_redraw)
+                {
+                    lazy_redraw(life.root);
+
+                    return false;
+                }
+
+                return true;
+            };
+
+            $("zoomin_button").onclick = function()
+            {
+                drawer.zoom_centered(false);
+                update_hud();
+                lazy_redraw(life.root);
+            };
+
+            $("zoomout_button").onclick = function()
+            {
+                drawer.zoom_centered(true);
+                update_hud();
+                lazy_redraw(life.root);
+            };
+
+            var select_rules = $("select_rules").getElementsByTagName("span");
+
+            for(var i = 0; i < select_rules.length; i++)
+            {
+                /** @this {Element} */
+                select_rules[i].onclick = function()
+                {
+                    $("rule").value = this.getAttribute("data-rule");
+                };
+            }
+
+            $("import_submit").onclick = function()
+            {
+                var previous = current_pattern.title;
+
+                setup_pattern($("import_text").value, false);
+
+                if(previous !== current_pattern.title) {
+                    show_alert(current_pattern);
+                }
+            };
+
+            $("import_abort").onclick = function()
+            {
+                hide_element($("overlay"));
+            };
+
+            $("import_button").onclick = function()
+            {
+                show_overlay("import_dialog");
+                $("import_text").value = "";
+                
+                set_text($("import_info"), "");
+            };
+
+            $("settings_submit").onclick = function()
+            {
+                var new_rule_s,
+                    new_rule_b,
+                    new_gen_step;
+                
+                hide_element($("overlay"));
+                
+                new_rule_s = formats.parse_rule($("rule").value, true);
+                new_rule_b = formats.parse_rule($("rule").value, false);
+
+                new_gen_step = Math.round(Math.log(Number($("gen_step").value) || 0) / Math.LN2);
+                
+                life.set_rules(new_rule_s, new_rule_b);
+
+                if(!new_gen_step || new_gen_step < 0) {
+                    life.set_step(0);
+                }
+                else {
+                    life.set_step(new_gen_step);
+                }
+                
+                max_fps = Number($("max_fps").value);
+                if(!max_fps || max_fps < 0) {
+                    max_fps = 30;
+                }
+                
+                drawer.border_width = parseFloat($("border_width").value);
+                if(isNaN(drawer.border_width) || drawer.border_width < 0 || drawer.border_width > .5) 
+                {
+                    drawer.border_width = .2;
+                }
+
+                drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
+                drawer.background_color = validate_color($("background_color").value) || "#000";
+                var style_text = document.createTextNode(
+                    ".button,.menu>div{background-color:" + drawer.cell_color +
+                    ";box-shadow:2px 2px 4px " + drawer.cell_color + "}" +
+                    "#statusbar>div{border-color:" + drawer.cell_color + "}"
+                );
+
+                style_element.appendChild(style_text);
+
+                $("pattern_name").style.color = 
+                $("statusbar").style.color = drawer.cell_color;
+                $("statusbar").style.textShadow = "0px 0px 1px " + drawer.cell_color;
+
+                $("toolbar").style.color = drawer.background_color;
+                
+                lazy_redraw(life.root);
+            }
+
+            $("settings_reset").onclick = function()
+            {
+                reset_settings();
+                
+                lazy_redraw(life.root);
+                
+                hide_element($("overlay"));
+            }
+
+            $("settings_button").onclick = function()
+            {
+                show_overlay("settings_dialog");
+                
+                $("rule").value = formats.rule2str(life.rule_s, life.rule_b);
+                $("max_fps").value = max_fps;
+                $("gen_step").value = Math.pow(2, life.step);
+
+                $("border_width").value = drawer.border_width;
+                $("cell_color").value = drawer.cell_color;
+                $("background_color").value = drawer.background_color;
+            };
+
+            $("settings_abort").onclick = 
+                $("pattern_close").onclick = 
+                $("alert_close").onclick = 
+                $("about_close").onclick = function()
+            {
+                hide_element($("overlay"));
+            };
+
+            $("pattern_name").onclick = function()
+            {
+                show_alert(current_pattern);
+            };
+
+            $("about_button").onclick = function()
+            {
+                show_overlay("about");
+            };
+
+            $("more_button").onclick = function()
+            {
+                show_overlay("pattern_chooser");
+
+                if(patterns_loaded)
+                {
+                    return;
+                }
+
+                patterns_loaded = true;
+
+                http_get(pattern_path + "list", function(text) 
+                {
+                    var patterns = text.split("\n"),
+                        list = $("pattern_list");
+
+                    patterns.forEach(function(pattern)
+                    {
+                        var 
+                            name = pattern.split(" ")[0],
+                            size = pattern.split(" ")[1],
+                            name_element = document.createElement("div"),
+                            size_element = document.createElement("span");
+
+                        set_text(name_element, name);
+                        set_text(size_element, size);
+                        size_element.className = "size";
+
+                        name_element.appendChild(size_element);
+                        list.appendChild(name_element);
+
+                        name_element.onclick = function()
+                        {
+                            http_get(pattern_path + name + ".rle", function(text)
+                            {
+                                setup_pattern(text, name);
+                                set_query(name);
+                                show_alert(current_pattern);
+                                
+                                life.set_step(0);
+                            });
+                        }
+                    });
+                });
+            };
+
+            var examples_menu = $("examples_menu");
+
+            examples.forEach(function(example)
+            {
+                var file = example.split(",")[0],
+                    name = example.split(",")[1],
+
+                    menu = document.createElement("div");
+
+                set_text(menu, name);
+                
+                menu.onclick = function() 
+                {
+                    http_get(pattern_path + file + ".rle", function(text)
+                    {
+                        setup_pattern(text, file);
+                        set_query(file);
+                        show_alert(current_pattern);
+                    });
+                }
+                
+                examples_menu.appendChild(menu);
+            });
+        }
     }
 
     document.addEventListener("DOMContentLoaded", window.onload, false);

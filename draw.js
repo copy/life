@@ -72,8 +72,6 @@ function LifeCanvasDrawer()
         {
             canvas_width = canvas.width = width;
             canvas_height = canvas.height = height;
-            
-            context.fillStyle = drawer.cell_color;
 
             image_data = context.createImageData(width, height);
             image_data_data = image_data.data;
