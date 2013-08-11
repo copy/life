@@ -1,33 +1,7 @@
 "use strict";
 
-var asmlib = (function(std)
-{
-    // asm is slower for now?
-    //"use asm";
-
-    var imul = std.Math.imul;
-
-    function calc_hash(nw_id, ne_id, sw_id, se_id)
-    {
-        nw_id = nw_id | 0;
-        ne_id = ne_id | 0;
-        sw_id = sw_id | 0;
-        se_id = se_id | 0;
 
 
-        //var hash = 0;
-        //hash = hash + nw_id | 0;
-        nw_id = ne_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
-        nw_id = sw_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
-        nw_id = se_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
-
-        return nw_id | 0;
-    }
-
-    return {
-        calc_hash : calc_hash
-    };
-})({ Math: Math });
 
 /** @constructor */
 function LifeUniverse()
@@ -144,7 +118,7 @@ function LifeUniverse()
             
     false_leaf =
     {
-        id: 2,
+        id: 3,
         population: 0,
         level: 0,
         
@@ -165,7 +139,7 @@ function LifeUniverse()
 
     true_leaf =
     {
-        id: 1,
+        id: 2,
         population: 1,
         level: 0,
         
@@ -506,7 +480,7 @@ function LifeUniverse()
     // Hash a node, return false if it was hashed before.
     function add_hash(n)
     {
-        var hash = asmlib.calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id);
+        var hash = calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id);
 
         for(var node;;)
         {
@@ -537,7 +511,7 @@ function LifeUniverse()
 
     function create_tree(nw, ne, sw, se)
     {
-        var hash = asmlib.calc_hash(nw.id, ne.id, sw.id, se.id);
+        var hash = calc_hash(nw.id, ne.id, sw.id, se.id);
 
         for(var node;;)
         {
@@ -659,7 +633,7 @@ function LifeUniverse()
         for(var i = 0; i <= hashmap_size; i++)
             hashmap[i] = undefined;
 
-        last_id = 3;
+        last_id = 4;
         life.root.hash();
 
         //console.log("last id: " + last_id);
@@ -689,7 +663,7 @@ function LifeUniverse()
 
             if(node !== undefined)
             {
-                hash = asmlib.calc_hash(node.nw.id, node.ne.id, node.sw.id, node.se.id);
+                hash = calc_hash(node.nw.id, node.ne.id, node.sw.id, node.se.id);
 
                 for(;;)
                 {
@@ -713,9 +687,28 @@ function LifeUniverse()
         hashmap = new_hashmap;
     }*/
 
+    function calc_hash(nw_id, ne_id, sw_id, se_id)
+    {
+        //nw_id = nw_id | 0;
+        //ne_id = ne_id | 0;
+        //sw_id = sw_id | 0;
+        //se_id = se_id | 0;
+
+
+        //var hash = 0;
+        //hash = hash + nw_id | 0;
+        //nw_id = ne_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+        //nw_id = sw_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+        //nw_id = se_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
+        //return nw_id | 0;
+        
+
+        return ((nw_id * 23 ^ ne_id) * 23 ^ sw_id) * 23 ^ se_id;
+    }
+
     function clear_pattern()
     {
-        last_id = 3;
+        last_id = 4;
         hashmap_size = (1 << INITIAL_SIZE) - 1;
         max_load = hashmap_size * LOAD_FACTOR | 0;
         hashmap = [];
