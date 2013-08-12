@@ -482,6 +482,7 @@
             
             drawer.canvas.onmousewheel = function(e)
             {
+                e.preventDefault();
                 drawer.zoom((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
 
                 update_hud();
