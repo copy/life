@@ -321,6 +321,31 @@
                 
                 requestAnimationFrame(lazy_redraw.bind(0, life.root));
             }, 200);
+
+            $("gen_step").onchange = function(e)
+            {
+                if(this.type === "number")
+                {
+                    var value = Number(this.value);
+                    
+                    if(!value)
+                    {
+                        return;
+                    }
+                    
+                    var closest_pow2 = Math.pow(2, Math.round(Math.log(value) / Math.LN2));
+                    if(value <= 1)
+                    {
+                        this.value = 1;
+                    }
+                    else
+                    {
+                        this.value = closest_pow2;
+                    }
+
+                    this.step = this.value / 2;
+                }
+            };
             
             $("run_button").onclick = function()
             {
