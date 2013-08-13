@@ -8,7 +8,7 @@ function LifeUniverse()
 {
     /** @const */
     var LOAD_FACTOR = .6,
-        INITIAL_SIZE = 20,
+        INITIAL_SIZE = 16,
         HASHMAP_LIMIT = 24;
 
     var 

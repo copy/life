@@ -115,7 +115,10 @@
         drawer.set_size(window.innerWidth, document.body.offsetHeight);
         reset_settings();
 
-        life.clear_pattern();
+        // This gets called, when a pattern is loaded.
+        // It has to be called at least once before anything can happen.
+        // Since we always load a pattern, it's not necessary at this point.
+        //life.clear_pattern();
         
         // production setup
         // loads a pattern defined by ?pattern=filename (without extension)

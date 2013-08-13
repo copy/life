@@ -178,13 +178,13 @@ function LifeCanvasDrawer()
         border_width = drawer.border_width * drawer.cell_width | 0;
         cell_color_rgb = color2rgb(drawer.cell_color);
 
-        for(var i = canvas_width * canvas_height * 4 - 4; i > 0;)
+        var count = canvas_width * canvas_height * 4;
+
+        for(var i = 0; i < count; i += 4)
         {
             image_data_data[i] = bg_color_rgb.r;
             image_data_data[i + 1] = bg_color_rgb.g;
             image_data_data[i + 2] = bg_color_rgb.b;
-
-            i -= 4;
         }
 
         var size = Math.pow(2, node.level - 1) * drawer.cell_width;
