@@ -839,8 +839,8 @@
 
     function reset_settings()
     {
-        drawer.background_color = "#000";
-        drawer.cell_color = "#ccc";
+        drawer.background_color = "#000000";
+        drawer.cell_color = "#cccccc";
 
         drawer.border_width = .2;
         drawer.cell_width = 2;
@@ -860,7 +860,7 @@
 
     function setup_pattern(pattern_text, pattern_link)
     {
-        var result = formats.parse_pattern(pattern_text);
+        var result = formats.parse_pattern(pattern_text.trim());
 
         if(result.error)
         {
