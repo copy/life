@@ -4,6 +4,7 @@ body {
     color: #ccc;
     font-family: sans-serif;
     height: 100%;
+    overflow: hidden;
 }
 html {
     height: 100%;
