@@ -1,8 +1,6 @@
 "use strict";
 
 
-
-
 /** @constructor */
 function LifeUniverse()
 {
@@ -52,7 +50,6 @@ function LifeUniverse()
             return powers[x];
         };
     })();
-
 
 
     var eval_mask = (function()
@@ -911,16 +908,232 @@ function LifeUniverse()
             bounds = get_bounds(field);
         }
 
-        //var t = Date.now();
         var level = get_level_from_bounds(bounds),
-            node = field2tree(field, level);
+            offset = pow2(level) / 2;
 
-        //console.log("field to tree", Date.now() - t);
+        for(var i = 0; i < field.length; i++)
+        {
+            field[i].x += offset;
+            field[i].y += offset;
+        }
+        
+        //var t = Date.now();
+        quick_sort(field, 0, field.length - 1);
+        //console.log("sort: " + (Date.now() - t));
+        //var t = Date.now();
+        //console.log(field);
+        //console.log(level);
+
+        //life.root = empty_tree(level);
+
+        life.root = setup_field_recurse(0, field.length, field, level);
+        //console.log("setup: " + (Date.now() - t));
+
+
+        // Different setup to load a pattern:
+        // (a bit slower)
+
+        //var t = Date.now();
+        //var level = get_level_from_bounds(bounds),
+        //    node = field2tree(field, level);
+
+        //console.log("field to tree " + (Date.now() - t));
 
         //t = Date.now();
 
-        life.root = setup_field_from_tree(node, level);
-        //console.log("setup field", Date.now() - t);
+        //life.root = setup_field_from_tree(node, level);
+        //console.log("setup field " + (Date.now() - t));
+    }
+
+    function setup_field_recurse(start, end, field, level)
+    {
+        if(level === 0)
+        {
+            return start === end ? false_leaf : true_leaf;
+        }
+
+        if(start === end)
+        {
+            return empty_tree(level);
+        }
+
+        if(end - start > 14)
+        {
+            var offset = pow2(level - 1),
+                part1,
+                part2 = start,
+                part3,
+                min = start, 
+                max = end,
+                mid;
+
+            while(min < max)
+            {
+                mid = min + (max - min >> 1);
+
+                if(field[mid].y & offset)
+                {
+                    part2 = max = mid;
+                }
+                else
+                {
+                    part2 = min = mid + 1;
+                }
+            }
+
+            min = part1 = start;
+            max = part2;
+
+            while(min < max)
+            {
+                mid = min + (max - min >> 1);
+
+                if(field[mid].x & offset)
+                {
+                    part1 = max = mid;
+                }
+                else
+                {
+                    part1 = min = mid + 1;
+                }
+            }
+
+            min = part3 = part2;
+            max = end;
+
+            while(min < max)
+            {
+                mid = min + (max - min >> 1);
+
+                if(field[mid].x & offset)
+                {
+                    part3 = max = mid;
+                }
+                else
+                {
+                    part3 = min = mid + 1;
+                }
+            }
+        }
+        else
+        {
+            var offset = pow2(level - 1),
+                i = start,
+                part1,
+                part2,
+                part3;
+
+            while(i < end && ((field[i].x | field[i].y) & offset) === 0)
+            {
+                i++;
+            }
+
+            part1 = i;
+
+            while(i < end && (field[i].y & offset) === 0)
+            {
+                i++;
+            }
+
+            part2 = i;
+            //console.log(part2 - mid, x);
+            //console.assert(part2 - mid >= 0 && part2 - mid <= 1);
+            //console.assert(part2 - mid == x);
+
+            while(i < end && (field[i].x & offset) === 0)
+            {
+                i++;
+            }
+
+            part3 = i;
+        }
+
+        //console.log(this.level);
+        //console.log(field.slice(0, part1));
+        //console.log(field.slice(part1, part2));
+        //console.log(field.slice(part2, part3));
+        //console.log(field.slice(part3));
+        //console.log(offset);
+        level--;
+
+        return create_tree(
+            setup_field_recurse(start, part1, field, level),
+            setup_field_recurse(part1, part2, field, level),
+            setup_field_recurse(part2, part3, field, level),
+            setup_field_recurse(part3, end, field, level)
+        );
+    }
+
+    function compare(p1, p2)
+    {
+        var y = p1.y ^ p2.y,
+            x = p1.x ^ p2.x;
+
+        if(y < x && y < (y ^ x))
+        {
+            return p1.x - p2.x;
+        }
+        else
+        {
+            return p1.y - p2.y;
+        }
+    }
+
+
+    function partition(items, left, right)
+    {
+        var pivot = items[right + left >> 1],
+            i = left,
+            j = right,
+            swap;
+
+        while(i <= j)
+        {
+            while(compare(items[i], pivot) < 0)
+            {
+                i++;
+            }
+
+            while(compare(items[j], pivot) > 0)
+            {
+                j--;
+            }
+
+            if(i <= j)
+            {
+                swap = items[i];
+                items[i] = items[j];
+                items[j] = swap;
+
+                i++;
+                j--;
+            }
+        }
+
+        return i;
+    }
+
+
+    function quick_sort(items, left, right)
+    {
+        if(items.length <= 1)
+        {
+            return items;
+        }
+
+        var index = partition(items, left, right);
+
+        if(left < index - 1)
+        {
+            quick_sort(items, left, index - 1);
+        }
+
+        if(index < right)
+        {
+            quick_sort(items, index, right);
+        }
+
+        return items;
     }
 
     function setup_field_from_tree(node, level)
@@ -1016,4 +1229,5 @@ function LifeUniverse()
             }
         }
     }
+
 }
