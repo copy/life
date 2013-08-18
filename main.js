@@ -918,12 +918,21 @@
             life.make_center(result.field, bounds);
             life.setup_field(result.field, bounds);
 
+            if(result.rule_s && result.rule_b)
+            {
+                life.set_rules(result.rule_s, result.rule_b);
+            }
+            else
+            {
+                life.set_rules(1 << 3, 1 << 2 | 1 << 3);
+            }
+
             hide_element($("overlay"));
 
             drawer.redraw(life.root);
             
             update_hud();
-            set_text($("pattern_name"), result.title || "");
+            set_text($("pattern_name"), result.title || "no name");
             
             current_pattern = {
                 title : result.title,
