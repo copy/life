@@ -33,6 +33,7 @@ function LifeUniverse()
     // the hashmap
     this.hashmap = [];
 
+    this.empty_tree_cache = [];
 
     this._powers = new Float64Array(1024);
     this._powers[0] = 1;
@@ -163,13 +164,18 @@ LifeUniverse.prototype.get_bit = function(x, y)
 
 LifeUniverse.prototype.empty_tree = function(level)
 {
-    if(level === 0) {
-        return this.false_leaf;
+    if(this.empty_tree_cache[level]) {
+        return this.empty_tree_cache[level];
+    }
+    
+    if(level === 1) {
+        var t = this.false_leaf;
+    }
+    else {
+        var t = this.empty_tree(level - 1);
     }
         
-    var t = this.empty_tree(level - 1);
-        
-    return this.create_tree(t, t, t, t);
+    return this.empty_tree_cache[level] = this.create_tree(t, t, t, t);
 }
 
 LifeUniverse.prototype.expand_universe = function(node)
@@ -441,6 +447,7 @@ LifeUniverse.prototype.clear_pattern = function()
     this.hashmap_size = (1 << INITIAL_SIZE) - 1;
     this.max_load = this.hashmap_size * LOAD_FACTOR | 0;
     this.hashmap = [];
+    this.empty_tree_cache = [];
 
     for(var i = 0; i <= this.hashmap_size; i++)
         this.hashmap[i] = undefined;
@@ -655,7 +662,7 @@ LifeUniverse.prototype.setup_field = function(field, bounds)
     var t = Date.now();
 
     this.root = this.setup_field_recurse(0, field.length, field, level);
-    //console.log("setup: " + (Date.now() - t));
+    console.log("setup: " + (Date.now() - t));
 
 
     // Different setup to load a pattern:
@@ -1017,6 +1024,7 @@ LifeUniverse.prototype.set_step = function(step)
 
         if(this.generation > 0) {
             this.uncache(false);
+            this.empty_tree_cache = [];
         }
     }
 };
@@ -1030,6 +1038,7 @@ LifeUniverse.prototype.set_rules = function(s, b)
 
         if(this.generation > 0) {
             this.uncache(true);
+            this.empty_tree_cache = [];
         }
     }
 };
@@ -1047,7 +1056,7 @@ function TreeNode(nw, ne, sw, se, id)
 
     this.id = id;
     
-    // 2^level = width of area
+    // 2^level = width/height of area
     this.level = nw.level + 1;
 
     this.population = nw.population + ne.population + sw.population + se.population;
