@@ -3,76 +3,80 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Conway's Game of Life</title>
-<meta name="description" content="A Javascript version of Conway's Game of Life, based on the Hashlife-algorithm.">
+<meta name="description" content="A JavaScript version of Conway's Game of Life, based on the Hashlife-algorithm.">
 <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <link rel="stylesheet" href="life.css" type="text/css">
 <script src="debug.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="toolbar" style="display: none;">
-    <div class="button" id="about_button">about</div>
+    <div class="button" id="about_button">About</div>
     <div class="menu" id="examples_menu">
-        <div>examples</div>
-        <div id="more_button">more ...</div>
+        <div>Patterns</div>
+        <div id="more_button">More ...</div>
     </div>
-    <div id="import_button" class="button">import</div>
-    <div class="button" id="settings_button">settings</div>
-    <div class="button" id="zoomout_button">-</div>
-    <div class="button" id="zoomin_button">+</div>
-    <div class="button" id="clear_button">clear</div>
-    <div class="button" id="superstep_button">superstep</div>
-    <div class="button" id="step_button">step</div>
-    <div class="button" id="rewind_button">rewind</div>
-    <div class="button" id="run_button">run</div>
+    <div id="import_button" class="button">Import</div>
+    <div class="button" id="settings_button">Settings</div>
+    <div class="button" id="zoomout_button" title="Zoom Out" style="font-weight: bold">&#8211;</div>
+    <div class="button" id="zoomin_button" title="Zoom In" style="font-weight: bold">+</div>
+    <div class="button" id="clear_button">Clear</div>
+    <div class="button" id="superstep_button">Superstep</div>
+    <div class="button" id="step_button">Step</div>
+    <div class="button" id="rewind_button">Rewind</div>
+    <div class="button" id="run_button">Run</div>
 </div>
 <div id="statusbar" style="display: none;">
-    <div id="label_zoom" title="zoom"></div>
-    <div id="label_mou" title="mouse coordinates">0, 0</div>
-    <div id="label_fps" title="frames per second">...</div>
-    <div id="label_gen" title="generation">0</div>
-    <div id="label_pop" title="population">0</div>
-    <span id="pattern_name" class="link"></span>
+    <div id="label_zoom" title="Zoom"></div>
+    <div id="label_mou" title="Mouse Coordinates">0, 0</div>
+    <div id="label_fps" title="Frames per Second">0</div>
+    <div id="label_gen" title="Generation">0</div>
+    <div id="label_pop" title="Population">0</div>
+    <div id="label_step" title="Generation per Step">1</div>
+    <span id="pattern_name" class="link" title="Pattern infos"></span>
 </div>
 <div id="overlay">
     <div id="about">
-        <h2>Conway's Game of Life in Javacript</h2>
-        This is an implementation of Conway's Game of Life or
-        more precisely, the <a href="http://en.wikipedia.org/wiki/Hashlife" target="_blank">Hashlife</a>-algorithm,
-        written in Javascript using the canvas-tag.<br>
-        <br>
-        <a href="https://github.com/copy/life">Source code on Github</a>.<br>
+        <h2>Conway's Game of Life in JavaScript</h2>
+        <div id="notice">
+                <h3 style="color: orange">Sorry, this applications needs JavaScript to work.</h3>
+            <center>
+                <img src="pattern.gif" alt="Bi Gun">
+            </center>
+            <br>
+            <br>
+        </div>
+        This is an implementation of <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Conway's Game of Life</a> or
+        more precisely, the super-fast <a href="https://en.wikipedia.org/wiki/Hashlife" target="_blank">Hashlife</a> algorithm,
+        written in JavaScript using the <code>canvas</code>-tag.<br>
         <br>
         If you encounter any bugs or have feedback, you can contact me at <a href="?pattern=email">this email</a>.<br>
-        <br>
-        <b>Controls:</b>
-        <pre>
-    Left mouse - Move
-    Right mouse - Draw
-    Mouse wheel - Zoom
-    Arrow keys, HJKL - Move
-    Plus &amp; Minus - Zoom
-    Space - One generation forward
-    Tab - Many generations forward
-    Enter - Run/Pause
-    Backspace - Rewind
-    ] - Faster
-    [ - Slower
-        </pre>
         <br>
         Click on the pattern name on the bottom left to get some informations about the current pattern.
         <br>
         <br>
+        <b>Controls:</b>
+        <pre>
+    Left mouse          - Move around
+    Right mouse         - Create / Delete cells
+    Mouse wheel         - Zoom
+
+    Arrow keys, HJKL    - Move around
+    +, -                - Zoom 
+    Space               - One generation forward
+    Tab                 - Many generations forward
+    Enter               - Run/Pause
+    Backspace           - Rewind
+    ]                   - Faster
+    [                   - Slower
+    Escape              - Close Popups
+        </pre>
+        <a href="https://github.com/copy/life">Source code on Github</a>.<br>
         <br>
-        <div id="notice">
-            <h4>Sorry, this page needs Javascript to work properly.</h4>
-            <img src="error.png" alt="gosper glider gun">
-            <br>
-            <br>
-            Maybe you want to see some <a href="/">other things</a>.
-        </div>
-        <span class="button2" id="about_close" style="display: none">ok</span>
+        <br>
+        <span class="button2" id="about_close" style="display: none">Ok</span>
     </div>
     <div id="import_dialog" style="display: none;">
+        <h2>Import Pattern</h2>
         Supports RLE, Life 1.06, Plaintext        
         <br>
         <br>
@@ -81,23 +85,22 @@
         <div id="import_info"></div>
         <br>
         <br>
-        <span id="import_submit" class="button2">import</span>
-        <span id="import_abort" class="button2">abort</span>
+        <span id="import_submit" class="button2">Import</span>
+        <span id="import_abort" class="button2">Abort</span>
     </div>
     <div id="alert" style="display: none;">
         <div id="alert_text">
-            <strong id="pattern_title"></strong>
-            <br>
-            <br>
+            <h2 id="pattern_title"></h2>
             <div id="pattern_description"></div>
             <a id="pattern_url" target="_blank"></a>
             <br>
             <br>
-            <div id="pattern_link"></div>
+            Link:
+            <input readonly id="pattern_link"></input>
         </div>
         <br>
         <br>
-        <span class="button2" id="alert_close">ok</span>
+        <span class="button2" id="alert_close">Ok</span>
     </div>
     <div id="pattern_chooser" style="display: none;">
         Source: <a href="http://www.conwaylife.com/wiki/Main_Page" target="_blank">www.conwaylife.com</a>. Thanks!
@@ -106,9 +109,10 @@
         <div id="pattern_list"></div>
         <br>
         <br>
-        <span class="button2" id="pattern_close">close</span>
+        <span class="button2" id="pattern_close">Close</span>
     </div>
     <div id="settings_dialog" style="display: none;">
+        <h2>Settings</h2>
         <div class="left" id="select_rules">
             Rule<br>
             <small>
@@ -125,7 +129,7 @@
         <br class="clear">
         <br>
         <div class="left">
-            Maximum fps
+            Maximum Frames per Second
         </div>
         <div class="right">
             <input type="number" min="1" id="max_fps" style="width: 60px">
@@ -134,7 +138,7 @@
         <br>
         <div class="left">
             Generation step<br>
-            <small>Only powers of 2 (will be rounded)</small>
+            <small>Only powers of 2 (automatically rounded)</small>
         </div>
         <div class="right">
             <input type="number" step="any" id="gen_step" style="width: 60px">
@@ -173,9 +177,16 @@
         <br>
         <hr>
         <br>
-        <span id="settings_submit" class="button2">save</span>
-        <span id="settings_reset" class="button2">reset</span>
-        <span id="settings_abort" class="button2">abort</span>
+        <span id="settings_submit" class="button2">Save</span>
+        <span id="settings_reset" class="button2">Reset</span>
+        <span id="settings_abort" class="button2">Abort</span>
+    </div>
+    <div id="loading_popup" style="display: none; font-size: 16px">
+        <center>
+            <h2>Downloading pattern file</h2> 
+            Please wait a second.<br><br>
+            <img src="pattern.gif" alt="Bi Gun">
+        </center>
     </div>
 </div>
 </body>

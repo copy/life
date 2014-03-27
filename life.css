@@ -31,27 +31,30 @@ html {
     position: fixed;
     bottom: 5px;
     right: 0px;
-    font-size: 12px;
+    font-size: 13px;
     z-index: 11;
     width: 99%;
     text-shadow: 0px 0px 1px #ccc;
     -webkit-user-select: none;
     -moz-user-select: none;
 }
+#label_step:before {
+    content: "Step: ";
+}
 #label_fps:before {
-    content: "fps: ";
+    content: "FPS: ";
 }
 #label_gen:before {
-    content: "gen: ";
+    content: "Gen: ";
 }
 #label_pop:before {
-    content: "pop: ";
+    content: "Pop: ";
 }
 #label_fps {
-    padding: 0px 25px;
+    xpadding: 0px 25px;
 }
-#label_gen, #label_pop, #label_mou, #label_zoom {
-    padding: 0px 10px;
+#label_gen, #label_pop, #label_mou, #label_zoom, #label_step, #label_fps {
+    padding: 0px 15px;
 }
 .button, .menu > div {
     background-color: #ccc;
@@ -79,21 +82,22 @@ html {
     position: absolute;
     top: 50px;
     padding: 20px 5px 50px;
-    font-size: 12px;
+    font-size: 13px;
     color: #ddd;
     z-index: 10;
     line-height: 1.4;
     border-style: solid;
     border-color: #444;
     border-width: 2px 0px;
+    width: 100%;
 }
-@media (min-width: 600px) {
+@media (min-width: 850px) {
     #overlay {
         border-width: 2px;
         border-radius: 15px;
         left: 50%;
-        margin-left: -300px; 
-        width: 500px;
+        margin-left: -400px; 
+        width: 700px;
         padding: 50px;
     }
 }
@@ -118,7 +122,7 @@ html {
     background-color: #000;
     border: 1px solid #fff;
     display: block;
-    width: 450px;
+    width: 100%;
     height: 200px;
     color: #fff;
 }
@@ -159,6 +163,9 @@ canvas {
     color: #fff;
     padding: 4px 10px;
     font-family: monospace;
+    width: 80%;
+    text-align: left;
+    border: 0px none;
 }
 #pattern_chooser > div {
     height: 500px;
@@ -166,7 +173,7 @@ canvas {
 #pattern_chooser > div > div {
     padding: 3px;
     float: left;
-    width: 225px;
+    width: 215px;
     cursor: pointer;
 }
 #pattern_chooser > div > div:hover {
@@ -189,4 +196,7 @@ br.clear {
 }
 .right {
     float: right;
+}
+#overlay h2 {
+    margin-top: 0;
 }

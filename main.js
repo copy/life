@@ -17,10 +17,17 @@
 
 "use strict";
 
+var 
+    /** @const */
+    DEFAULT_BORDER = 0.25,
+    /** @const */
+    DEFAULT_FPS = 20;
+
 
 (function() 
 {
     //var console = console || { log : function() {} };
+    var initialTitle = document.title;
 
     if(!document.addEventListener)
     {
@@ -79,7 +86,7 @@
         examples = (
             "turingmachine,Turing Machine|gunstar,Gunstar|hacksaw,Hacksaw|tetheredrake,Tethered rake|" + 
             "primer,Primer|infinitegliderhotel,Infinite glider hotel|" + 
-            "3enginecordershipgun,3-engine Cordership gun|p94s,P94S|breeder1,Breeder 1|tlogtgrowth,tlog(t) growth|" +
+            "p94s,P94S|breeder1,Breeder 1|tlogtgrowth,tlog(t) growth|" +
             "logt2growth,Log(t)^2 growth|infinitelwsshotel,Infinite LWSS hotel|c5greyship,c/5 greyship"
         ).split("|");
 
@@ -230,6 +237,7 @@
         {
             var otca_on, otca_off, otca_pattern;
 
+            show_overlay("loading_popup");
             http_get_multiple([
                 {
                     url : pattern_path + "otcametapixel.rle", 
@@ -276,6 +284,7 @@
 
         function try_load_pattern()
         {
+            show_overlay("loading_popup");
             http_get(
                 pattern_path + pattern_parameter + ".rle", 
                 function(text)
@@ -293,6 +302,7 @@
         {
             var random_pattern = examples[Math.random() * examples.length | 0].split(",")[0];
 
+            show_overlay("loading_popup");
             http_get(
                 pattern_path + random_pattern + ".rle",
                 function(text) {
@@ -320,7 +330,7 @@
                 drawer.set_size(window.innerWidth, document.body.offsetHeight);
                 
                 requestAnimationFrame(lazy_redraw.bind(0, life.root));
-            }, 200);
+            }, 500);
 
             $("gen_step").onchange = function(e)
             {
@@ -379,6 +389,7 @@
             {
                 stop(function()
                 {
+                    set_title();
                     set_text($("pattern_name"), "");
                     set_query("");
 
@@ -611,7 +622,10 @@
                         step++;
 
                     if(step >= 0)
+                    {
                         life.set_step(step);
+                        set_text($("label_step"), Math.pow(2, step));
+                    }
 
                     return false;
                 }
@@ -692,20 +706,22 @@
 
                 if(!new_gen_step || new_gen_step < 0) {
                     life.set_step(0);
+                    set_text($("label_step"), "1");
                 }
                 else {
                     life.set_step(new_gen_step);
+                    set_text($("label_step"), Math.pow(2, new_gen_step));
                 }
                 
                 max_fps = Number($("max_fps").value);
                 if(!max_fps || max_fps < 0) {
-                    max_fps = 30;
+                    max_fps = DEFAULT_FPS;
                 }
                 
                 drawer.border_width = parseFloat($("border_width").value);
                 if(isNaN(drawer.border_width) || drawer.border_width < 0 || drawer.border_width > .5) 
                 {
-                    drawer.border_width = .2;
+                    drawer.border_width = DEFAULT_BORDER;
                 }
 
                 drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
@@ -769,19 +785,21 @@
 
             $("more_button").onclick = function()
             {
-                show_overlay("pattern_chooser");
-
                 if(patterns_loaded)
                 {
+                    show_overlay("pattern_chooser");
                     return;
                 }
 
                 patterns_loaded = true;
 
+                show_overlay("loading_popup");
                 http_get(pattern_path + "list", function(text) 
                 {
                     var patterns = text.split("\n"),
                         list = $("pattern_list");
+
+                    show_overlay("pattern_chooser");
 
                     patterns.forEach(function(pattern)
                     {
@@ -800,6 +818,7 @@
 
                         name_element.onclick = function()
                         {
+                            show_overlay("loading_popup");
                             http_get(pattern_path + name + ".rle", function(text)
                             {
                                 setup_pattern(text, name);
@@ -807,6 +826,7 @@
                                 show_alert(current_pattern);
                                 
                                 life.set_step(0);
+                                set_text($("label_step"), "1");
                             });
                         }
                     });
@@ -826,6 +846,7 @@
                 
                 menu.onclick = function() 
                 {
+                    show_overlay("loading_popup");
                     http_get(pattern_path + file + ".rle", function(text)
                     {
                         setup_pattern(text, file);
@@ -850,7 +871,7 @@
         if(running)
         {
             running = false;
-            set_text($("run_button"), "run");
+            set_text($("run_button"), "Run");
 
             onstop = callback;
         }
@@ -867,14 +888,15 @@
         drawer.background_color = "#000000";
         drawer.cell_color = "#cccccc";
 
-        drawer.border_width = .2;
+        drawer.border_width = DEFAULT_BORDER;
         drawer.cell_width = 2;
 
         life.rule_b = 1 << 3;
         life.rule_s = 1 << 2 | 1 << 3;
         life.set_step(0);
+        set_text($("label_step"), "1");
 
-        max_fps = 30;
+        max_fps = DEFAULT_FPS;
 
         set_text($("label_zoom"), "1:2");
         fix_width($("label_mou"));
@@ -933,6 +955,7 @@
             
             update_hud();
             set_text($("pattern_name"), result.title || "no name");
+            set_title(result.title);
             
             current_pattern = {
                 title : result.title,
@@ -972,7 +995,7 @@
             interval,
             per_frame = frame_time;
         
-        set_text($("run_button"), "stop");
+        set_text($("run_button"), "Stop");
         
         running = true;
         
@@ -1061,7 +1084,8 @@
             if(pattern.link)
             {
                 show_element($("pattern_link"));
-                set_text($("pattern_link"), "http://copy.sh/life/?pattern=" + pattern.link);
+                //set_text($("pattern_link"), "http://copy.sh/life/?pattern=" + pattern.link);
+                $("pattern_link").value = "http://copy.sh/life/?pattern=" + pattern.link;
             }
             else
             {
@@ -1100,10 +1124,10 @@
             set_text($("label_fps"), fps.toFixed(1));
         }
 
-        set_text($("label_gen"), Number.format_thousands(life.generation, "\u202f"));
+        set_text($("label_gen"), format_thousands(life.generation, "\u202f"));
         fix_width($("label_gen"));
 
-        set_text($("label_pop"), Number.format_thousands(life.root.population, "\u202f"));
+        set_text($("label_pop"), format_thousands(life.root.population, "\u202f"));
         fix_width($("label_pop"));
 
         if(drawer.cell_width >= 1)
@@ -1134,11 +1158,13 @@
      */
     function fix_width(element)
     {
+        element.style.padding = "0";
         element.style.width = "";
 
         if(!element.last_width || element.last_width < element.offsetWidth) {
             element.last_width = element.offsetWidth;
         }
+        element.style.padding = "";
 
         element.style.width = element.last_width + "px";
     }
@@ -1291,6 +1317,18 @@
         }
     }
 
+    function set_title(title)
+    {
+        if(title)
+        {
+            document.title = title + " - " + initialTitle;
+        }
+        else
+        {
+            document.title = initialTitle;
+        }
+    }
+
     function hide_element(node)
     {
         node.style.display = "none";
@@ -1313,11 +1351,11 @@
 
     // Put sep as a seperator into the thousands spaces of and Integer n
     // Doesn't handle numbers >= 10^21
-    Number.format_thousands = function(n, sep) 
+    function format_thousands(n, sep) 
     {
         if(n < 0) 
         {
-            return "-" + Number.format_thousands(-n, sep);
+            return "-" + format_thousands(-n, sep);
         }
 
         if(isNaN(n) || !isFinite(n) || n >= 1e21)
