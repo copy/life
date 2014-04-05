@@ -640,6 +640,31 @@ var
                 return true;
             };
 
+            $("faster_button").onclick = function()
+            {
+                var step = life.step + 1;
+
+                life.set_step(step);
+                set_text($("label_step"), Math.pow(2, step));
+            };
+
+            $("slower_button").onclick = function()
+            {
+                if(life.step > 0)
+                {
+                    var step = life.step - 1;
+
+                    life.set_step(step);
+                    set_text($("label_step"), Math.pow(2, step));
+                }
+            };
+
+            $("normalspeed_button").onclick = function()
+            {
+                life.set_step(0);
+                set_text($("label_step"), 1);
+            };
+
             $("zoomin_button").onclick = function()
             {
                 drawer.zoom_centered(false);
@@ -653,6 +678,46 @@ var
                 update_hud();
                 lazy_redraw(life.root);
             };
+
+            $("initial_pos_button").onclick = function()
+            {
+                drawer.zoom_to(1);
+                drawer.center_view();
+                lazy_redraw(life.root);
+                update_hud();
+            };
+
+            $("middle_button").onclick = function()
+            {
+                drawer.center_view();
+                lazy_redraw(life.root);
+            };
+
+            var positions = [
+                ["ne",  1, -1],
+                ["nw", -1, -1],
+                ["se",  1,  1],
+                ["sw", -1,  1],
+                ["n",   0, -1],
+                ["e",  -1,  0],
+                ["s",   0,  1],
+                ["w",   1,  0],
+            ];
+
+            for(var i = 0; i < positions.length; i++)
+            {
+                var node = document.getElementById(positions[i][0] + "_button");
+
+                node.onclick = (function(info)
+                {
+                    return function()
+                    {
+                        drawer.move(info[1] * -30, info[2] * -30);
+                        lazy_redraw(life.root);
+                    };
+                })(positions[i]);
+
+            }
 
             var select_rules = $("select_rules").getElementsByTagName("span");
 
@@ -783,7 +848,10 @@ var
                 show_overlay("about");
             };
 
-            $("more_button").onclick = function()
+            $("more_button").onclick = show_pattern_chooser;
+            $("pattern_button").onclick = show_pattern_chooser;
+                
+            function show_pattern_chooser()
             {
                 if(patterns_loaded)
                 {
