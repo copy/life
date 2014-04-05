@@ -946,7 +946,7 @@ var
             }
             else
             {
-                life.set_rules(1 << 3, 1 << 2 | 1 << 3);
+                life.set_rules(1 << 2 | 1 << 3, 1 << 3);
             }
 
             hide_element($("overlay"));
