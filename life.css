@@ -15,17 +15,36 @@ html {
     top: 0px;
     right: 0px;
     z-index: 10;
-    padding: 5px;
     color: #000;
+    width: 100%;
 }
-#toolbar > div{
+#toolbar > div {
     float: right;
 }
-
+#toolbar > table {
+}
 #statusbar > div {
     float: right;
     border-left: 1px solid #ccc;
     text-align: center;
+}
+#controls {
+    padding: 5px;
+}
+#controls td div {
+    background-color: #ccc;
+    width: 18px;
+    height: 18px;
+    margin: 2px 1px;
+    font-weight: bold;
+    text-align: center;
+
+    cursor: pointer;
+    box-shadow: 2px 2px 3px #ccc;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    font-size: 80%;
+    line-height: 150%;
 }
 #statusbar {
     position: fixed;
@@ -50,24 +69,21 @@ html {
 #label_pop:before {
     content: "Pop: ";
 }
-#label_fps {
-    xpadding: 0px 25px;
-}
 #label_gen, #label_pop, #label_mou, #label_zoom, #label_step, #label_fps {
-    padding: 0px 15px;
+    padding: 0px 1vw;
+}
+.button, .menu {
+    margin-top: 5px;
 }
 .button, .menu > div {
     background-color: #ccc;
-    padding: 0px 10px;
     cursor: pointer;
-    margin-right: 20px;
+    padding: 0px 0.5vw;
+    margin-right: 1vw;
     margin-bottom: 7px;
-    box-shadow: 2px 2px 4px #ccc;
+    box-shadow: 2px 2px 3px #ccc;
     -webkit-user-select: none;
     -moz-user-select: none;
-}
-.menu > div:first-child {
-    cursor: default;
 }
 .menu {
     overflow: hidden;
@@ -102,8 +118,12 @@ html {
     }
 }
 @media (max-width: 600px) {
-    #zoomout_button, #zoomin_button, #examples_menu, #label_mou {
+    #label_mou {
         display: none;
+    }
+    .button {
+        padding: 0px 4px;
+        xmargin-right: 1%;
     }
 }
 #pattern_name {

@@ -10,20 +10,47 @@
 </head>
 <body>
 <div id="toolbar" style="display: none;">
+
     <div class="button" id="about_button">About</div>
     <div class="menu" id="examples_menu">
-        <div>Patterns</div>
+        <div id="pattern_button">Patterns</div>
         <div id="more_button">More ...</div>
     </div>
     <div id="import_button" class="button">Import</div>
     <div class="button" id="settings_button">Settings</div>
-    <div class="button" id="zoomout_button" title="Zoom Out" style="font-weight: bold">&#8211;</div>
-    <div class="button" id="zoomin_button" title="Zoom In" style="font-weight: bold">+</div>
     <div class="button" id="clear_button">Clear</div>
     <div class="button" id="superstep_button">Superstep</div>
     <div class="button" id="step_button">Step</div>
     <div class="button" id="rewind_button">Rewind</div>
     <div class="button" id="run_button">Run</div>
+
+    <table id="controls">
+        <tr>
+            <td title="Normal speed"><div id="normalspeed_button">1</div></td>
+            <td title="Slower"><div id="slower_button">&#171;</div></td>
+            <td title="Faster"><div id="faster_button">&#187;</div></td>
+        </tr>
+        <tr>
+            <td title="Initial zoom"><div id="initial_pos_button">F</div></td>
+            <td title="Zoom in"><div id="zoomin_button">+</div></td>
+            <td title="Zoom out"><div id="zoomout_button">&ndash;</div></td>
+        </tr>
+        <tr>
+            <td title="Go north-west"><div id="nw_button">&#8598;</div></td>
+            <td title="Go north"><div id="n_button">&#8593;</div></td>
+            <td title="Go north-east"><div id="ne_button">&#8599;</div></td>
+        </tr>
+        <tr>
+            <td title="Go east"><div id="e_button">&#8592;</div></td>
+            <td title="Go to 0, 0"><div id="middle_button">M</div></td>
+            <td title="Go west"><div id="w_button">&#8594;</div></td>
+        </tr>
+        <tr>
+            <td title="Go south-west"><div id="sw_button">&#8601;</div></td>
+            <td title="Go south"><div id="s_button">&#8595;</div></td>
+            <td title="Go south-east"><div id="se_button">&#8600;</div></td>
+        </tr>
+    </table>
 </div>
 <div id="statusbar" style="display: none;">
     <div id="label_zoom" title="Zoom"></div>
