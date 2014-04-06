@@ -2,7 +2,7 @@
 
 var 
     /** @const */
-    LOAD_FACTOR = .6,
+    LOAD_FACTOR = .9,
     /** @const */
     INITIAL_SIZE = 16,
     /** @const */
@@ -25,15 +25,11 @@ function LifeUniverse()
     // Size when the next GC will happen
     this.max_load = 0;
 
-
-    // living or dead leaf
-    //this.true_leaf = null;
-    //this.false_leaf = null;
-
     // the hashmap
     this.hashmap = [];
 
     this.empty_tree_cache = [];
+    this.level2_cache = [];
 
     this._powers = new Float64Array(1024);
     this._powers[0] = 1;
@@ -74,28 +70,13 @@ function LifeUniverse()
     /** @type {number} */
     this.generation = 0;
 
-    /*
-    this.get_bounds = get_bounds;
-    this.clear_pattern = clear_pattern;
-    this.make_center = make_center;
-    this.setup_field = setup_field;
-    this.move_field = move_field;
-    this.setup_meta = setup_meta;
-    this.set_step = set_step;
-    this.set_rules = set_rules;
-    this.set_bit = set_bit;
-    this.get_bit = get_bit;
-    this.next_generation = next_generation;
-    */
-
-            
+    // living or dead leaf
     this.false_leaf =
     {
         id: 3,
         population: 0,
         level: 0,
     };
-
     this.true_leaf =
     {
         id: 2,
@@ -116,16 +97,18 @@ LifeUniverse.prototype.eval_mask = function(bitmask)
 {
     var rule = (bitmask & 32) ? this.rule_s : this.rule_b;
     
-    if(rule & 1 << this._bitcounts[bitmask & 0x757])
-    {
-        return this.true_leaf;
-    }
-    else
-    {
-        return this.false_leaf;
-    }
-}
+    return rule >> this._bitcounts[bitmask & 0x757] & 1;
+};
 
+LifeUniverse.prototype.level1_create = function(bitmask)
+{
+    return this.create_tree(
+        bitmask & 1 ? this.true_leaf : this.false_leaf,
+        bitmask & 2 ? this.true_leaf : this.false_leaf,
+        bitmask & 4 ? this.true_leaf : this.false_leaf,
+        bitmask & 8 ? this.true_leaf : this.false_leaf
+    );
+};
 
 LifeUniverse.prototype.set_bit = function(x, y, living)
 {
@@ -141,12 +124,13 @@ LifeUniverse.prototype.set_bit = function(x, y, living)
     else
     {
         if(level > this.root.level) {
+            // no need to delete pixels outside of the universe
             return;
         }
     }
     
     this.root = this.node_set_bit(this.root, x, y, living);
-}
+};
 
 LifeUniverse.prototype.get_bit = function(x, y)
 {
@@ -160,23 +144,25 @@ LifeUniverse.prototype.get_bit = function(x, y)
     {
         return this.node_get_bit(this.root, x, y);
     }
-}
+};
 
 LifeUniverse.prototype.empty_tree = function(level)
 {
     if(this.empty_tree_cache[level]) {
         return this.empty_tree_cache[level];
     }
+
+    var t;
     
     if(level === 1) {
-        var t = this.false_leaf;
+        t = this.false_leaf;
     }
     else {
-        var t = this.empty_tree(level - 1);
+        t = this.empty_tree(level - 1);
     }
         
     return this.empty_tree_cache[level] = this.create_tree(t, t, t, t);
-}
+};
 
 LifeUniverse.prototype.expand_universe = function(node)
 {
@@ -188,7 +174,7 @@ LifeUniverse.prototype.expand_universe = function(node)
         this.create_tree(t, node.sw, t, t),
         this.create_tree(node.se, t, t, t)
     );
-}
+};
 
 // Preserve the tree, but remove all cached 
 // generations forward
@@ -206,51 +192,71 @@ LifeUniverse.prototype.uncache = function(also_quick)
                 node.quick_cache = null;
         }
     }
-}
+};
 
 
-// Hash a node, return false if it was hashed before.
-LifeUniverse.prototype.add_hash = function(n)
+// return false if a node is in the hashmap
+LifeUniverse.prototype.in_hashmap = function(n)
 {
-    var hash = this.calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id);
+    var hash = this.calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id) & this.hashmap_size,
+        node = this.hashmap[hash];
 
-    for(var node;;)
+    for(;;)
     {
-        hash &= this.hashmap_size;
-
-        var node = this.hashmap[hash];
-
         if(node === undefined)
-        {
-            // Update the id. We have looked for an old id, as
-            // the the hashmap has been cleared and ids have been
-            // reset, but this cannot avoided without iterating
-            // the tree twice.
-            n.id = this.last_id++;
-
-            this.hashmap[hash] = n;
-
-            return true;
-        }
-        else if(node.nw === n.nw && node.ne === n.ne && node.sw === n.sw && node.se === n.se)
         {
             return false;
         }
+        else if(node === n)
+        {
+            return true;
+        }
 
-        hash++;
+        node = node.hashmap_next;
     }
-}
+};
 
+// insert a node into the hashmap
+LifeUniverse.prototype.hashmap_insert = function(n)
+{
+    var hash = this.calc_hash(n.nw.id, n.ne.id, n.sw.id, n.se.id) & this.hashmap_size,
+        node = this.hashmap[hash],
+        prev;
+
+    for(;;)
+    {
+        if(node === undefined)
+        {
+            if(prev !== undefined)
+            {
+                prev.hashmap_next = n;
+            }
+            else
+            {
+                this.hashmap[hash] = n;
+            }
+
+            return;
+        }
+        //else if(node === n)
+        //{
+        //    // Should not happen
+        //}
+
+        prev = node;
+        node = node.hashmap_next;
+    }
+};
+
+// create or search for a tree node given its children
 LifeUniverse.prototype.create_tree = function(nw, ne, sw, se)
 {
-    var hash = this.calc_hash(nw.id, ne.id, sw.id, se.id);
+    var hash = this.calc_hash(nw.id, ne.id, sw.id, se.id) & this.hashmap_size,
+        node = this.hashmap[hash],
+        prev;
 
-    for(var node;;)
+    for(;;)
     {
-        hash &= this.hashmap_size;
-
-        var node = this.hashmap[hash];
-
         if(node === undefined)
         {
             if(this.last_id > this.max_load)
@@ -259,7 +265,18 @@ LifeUniverse.prototype.create_tree = function(nw, ne, sw, se)
                 return this.create_tree(nw, ne, sw, se);
             }
 
-            return this.hashmap[hash] = new TreeNode(nw, ne, sw, se, this.last_id++);
+            var new_node = new this.TreeNode(nw, ne, sw, se, this.last_id++);
+
+            if(prev !== undefined)
+            {
+                prev.hashmap_next = new_node;
+            }
+            else
+            {
+                this.hashmap[hash] = new_node;
+            }
+
+            return new_node;
         }
         else if(node.nw === nw && node.ne === ne && node.sw === sw && node.se === se)
         {
@@ -269,55 +286,10 @@ LifeUniverse.prototype.create_tree = function(nw, ne, sw, se)
         //        " (" + node.nw.id + "," + node.ne.id + "," + node.sw.id + "," + node.se.id + ")" +
         //        " (" + nw.id + "," + ne.id + "," + sw.id + "," + se.id + ")");
 
-        // "Open Addressing" - simply try the next cell
-        hash++;
+        prev = node;
+        node = node.hashmap_next;
     }
-
-    // "normal" buckets
-    /*
-    var entry = hashmap[hash],
-        node;
-    
-    if(entry === undefined)
-    {
-        return hashmap[hash] = new TreeNode(nw, ne, sw, se);
-    }
-    else if(entry instanceof Array)
-    {
-        if(x < entry.length) x = entry.length, y = [nw, ne, sw, se, hash];
-        for(var i = 0; i < entry.length; i++)
-        {
-            node = entry[i];
-
-            if(node.nw === nw && node.ne === ne && node.sw === sw && node.se === se)
-            {
-                return node;
-            }
-        }
-
-        node = new TreeNode(nw, ne, sw, se);
-
-        entry.push(node);
-
-        return node;
-    }
-    else
-    {
-        if(entry.nw === nw && entry.ne === ne && entry.sw === sw && entry.se === se)
-        {
-            return entry;
-        }
-        else
-        {
-            node = new TreeNode(nw, ne, sw, se);
-
-            hashmap[hash] = [entry, node];
-
-            return node;
-        }
-    }/* */
-}
-
+};
 
 LifeUniverse.prototype.next_generation = function(is_single)
 {
@@ -345,13 +317,13 @@ LifeUniverse.prototype.next_generation = function(is_single)
     }
 
     this.root = root;
-}
+};
 
 LifeUniverse.prototype.garbage_collect = function()
 {
     //document.getElementById("pattern_name").textContent = last_id + " / " + (last_id / hashmap_size).toFixed(5);
-    //console.log("entries: " + last_id);
-    //console.log("load factor: " + last_id / hashmap_size);
+    //console.log("entries: " + this.last_id);
+    //console.log("load factor: " + this.last_id / this.hashmap_size);
 
     //console.log("collecting garbage ...");
     //var t = Date.now();
@@ -371,57 +343,14 @@ LifeUniverse.prototype.garbage_collect = function()
     this.last_id = 4;
     this.node_hash(this.root);
 
-    //console.log("last id: " + last_id);
-    //console.log("new hashmap size: " + hashmap_size);
+    //console.log("new entries: " + this.last_id);
+    //console.log("population: " + this.root.population);
+    //console.log("new hashmap size: " + this.hashmap_size);
     //console.log("GC done in " + (Date.now() - t));
     //console.log("size: " + hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
-}
+};
 
-/*
-function garbage_collect()
-{
-    var previous_size = hashmap_size,
-        new_hashmap = [];
-    
-    hashmap_size = hashmap_size << 1 | 1;
-    max_load = hashmap_size * LOAD_FACTOR | 0;
-
-    for(var i = 0; i <= hashmap_size; i++)
-    {
-        new_hashmap[i] = undefined
-    }
-
-    for(var i = 0; i <= previous_size; i++)
-    {
-        var node = hashmap[i],
-            hash;
-
-        if(node !== undefined)
-        {
-            hash = calc_hash(node.nw.id, node.ne.id, node.sw.id, node.se.id);
-
-            for(;;)
-            {
-                hash &= hashmap_size;
-
-                if(new_hashmap[i] === undefined)
-                {
-                    new_hashmap[i] = node;
-                    break;
-                }
-
-                hash++;
-            }
-        }
-    }
-    console.log("Garbage collected!");
-    console.log("Last id: " + last_id);
-    console.log("old size: " + hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
-    console.log("new size: " + new_hashmap.reduce(function(a, x) { return a + (x !== undefined); }, 0));
-
-    hashmap = new_hashmap;
-}*/
-
+// the hash function used for the hashmap
 LifeUniverse.prototype.calc_hash = function(nw_id, ne_id, sw_id, se_id)
 {
     //nw_id = nw_id | 0;
@@ -437,9 +366,9 @@ LifeUniverse.prototype.calc_hash = function(nw_id, ne_id, sw_id, se_id)
     //nw_id = se_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
     //return nw_id | 0;
     
-
-    return ((nw_id * 23 ^ ne_id) * 23 ^ sw_id) * 23 ^ se_id;
-}
+    var hash = ((nw_id * 23 ^ ne_id) * 23 ^ sw_id) * 23 ^ se_id;
+    return hash;
+};
 
 LifeUniverse.prototype.clear_pattern = function()
 {
@@ -448,17 +377,18 @@ LifeUniverse.prototype.clear_pattern = function()
     this.max_load = this.hashmap_size * LOAD_FACTOR | 0;
     this.hashmap = [];
     this.empty_tree_cache = [];
+    this.level2_cache = Array(0x10000);
 
     for(var i = 0; i <= this.hashmap_size; i++)
         this.hashmap[i] = undefined;
 
     this.root = this.empty_tree(3);
     this.generation = 0;
-}
+};
 
-LifeUniverse.prototype.get_bounds = function(field)
+LifeUniverse.prototype.get_bounds = function(field_x, field_y)
 {
-    if(!field.length)
+    if(!field_x.length)
     {
         return {
             top: 0,
@@ -469,17 +399,17 @@ LifeUniverse.prototype.get_bounds = function(field)
     }
 
     var bounds = {
-            top : field[0].y, 
-            left : field[0].x, 
-            bottom : field[0].y, 
-            right : field[0].x
+            top : field_y[0], 
+            left : field_x[1], 
+            bottom : field_y[0], 
+            right : field_x[1]
         },
-        len = field.length;
+        len = field_x.length;
     
     for(var i = 1; i < len; i++)
     {
-        var x = field[i].x,
-            y = field[i].y;
+        var x = field_x[i],
+            y = field_y[i];
         
         if(x < bounds.left)
         {
@@ -501,7 +431,7 @@ LifeUniverse.prototype.get_bounds = function(field)
     }
     
     return bounds;
-}
+};
 
 /*
  * given a point { x, y } or a bounds object { left, top, bottom, right },
@@ -611,370 +541,168 @@ LifeUniverse.prototype.field2tree = function(field, level)
     }
 
     return tree;
-}
+};
 
 /*
  * move a field so that (0,0) is in the middle
  */
-LifeUniverse.prototype.make_center = function(field, bounds)
+LifeUniverse.prototype.make_center = function(field_x, field_y, bounds)
 {
     var offset_x = Math.round((bounds.left - bounds.right) / 2) - bounds.left,
         offset_y = Math.round((bounds.top - bounds.bottom) / 2) - bounds.top;
 
-    this.move_field(field, offset_x, offset_y);
+    this.move_field(field_x, field_y, offset_x, offset_y);
 
     bounds.left += offset_x;
     bounds.right += offset_x;
     bounds.top += offset_y;
     bounds.bottom += offset_y;
-}
+};
 
-LifeUniverse.prototype.move_field = function(field, offset_x, offset_y)
+LifeUniverse.prototype.move_field = function(field_x, field_y, offset_x, offset_y)
 {
-    var len = field.length;
+    var len = field_x.length;
 
     for(var i = 0; i < len; i++)
     {
-        field[i].x += offset_x;
-        field[i].y += offset_y;
+        field_x[i] += offset_x;
+        field_y[i] += offset_y;
     }
-}
+};
 
 /** @param {*=} bounds */
-LifeUniverse.prototype.setup_field = function(field, bounds)
+LifeUniverse.prototype.setup_field = function(field_x, field_y, bounds)
 {
-    if(!bounds) {
-        bounds = this.get_bounds(field);
+    if(bounds === undefined) {
+        bounds = this.get_bounds(field_x, field_y);
     }
 
     var level = this.get_level_from_bounds(bounds),
-        offset = this.pow2(level) / 2;
+        offset = this.pow2(level - 1),
+        count = field_x.length;
 
-    for(var i = 0; i < field.length; i++)
-    {
-        field[i].x += offset;
-        field[i].y += offset;
-    }
+    //console.log(field_x, field_y);
+    this.move_field(field_x, field_y, offset, offset);
     
-    //var t = Date.now();
-    this.quick_sort(field, 0, field.length - 1);
-    //console.log("sort: " + (Date.now() - t));
-    var t = Date.now();
+    //console.time("setup");
 
-    this.root = this.setup_field_recurse(0, field.length, field, level);
-    console.log("setup: " + (Date.now() - t));
+    //console.time("setup");
+    this.root = this.setup_field_recurse(0, count - 1, field_x, field_y, level);
+    //console.timeEnd("setup");
 
+    //console.log("entries: " + this.last_id);
+    //console.profileEnd("setup");
+};
 
-    // Different setup to load a pattern:
-    // (a bit slower)
-
-    //var t = Date.now();
-    //var level = get_level_from_bounds(bounds),
-    //    node = this.field2tree(field, level);
-
-    //console.log("field to tree " + (Date.now() - t));
-
-    //t = Date.now();
-
-    //this.root = setup_field_from_tree(node, level);
-    //console.log("setup field " + (Date.now() - t));
-}
-
-LifeUniverse.prototype.setup_field_recurse = function(start, end, field, level)
+LifeUniverse.prototype.partition = function(start, end, test_field, other_field, offset)
 {
-    if(level === 0)
-    {
-        return start === end ? this.false_leaf : this.true_leaf;
-    }
-
-    if(start === end)
-    {
-        return this.empty_tree(level);
-    }
-
-    //console.assert(start < end);
-
-    if(false)
-    {
-        var offset = this.pow2(level - 1),
-            part1,
-            part2 = start + (end - start >> 1),
-            part3;
-
-        //console.log(part2, start, end);
-
-        if(field[part2].y & offset)
-        {
-            while(part2 > start && (field[part2].y & offset))
-            {
-                part2--;
-            }
-        }
-        else
-        {
-            while(part2 < end - 1)
-            {
-                part2++;
-
-                if(field[part2].y & offset)
-                {
-                    part2--;
-                    break;
-                }
-            }
-        }
-
-        part1 = start + (part2 - start >> 1);
-
-        if(field[part1].x & offset)
-        {
-            while(part1 > start && (field[part1].x & offset))
-            {
-                part1--;
-            }
-        }
-        else
-        {
-            while(part1 < part2 - 1)
-            {
-                part1++;
-
-                if(field[part1].x & offset)
-                {
-                    part1--;
-                    break;
-                }
-            }
-        }
-
-        part3 = part2 + (end - part2 >> 1);
-
-        if(field[part3].x & offset)
-        {
-            while(part3 > part2 && (field[part3].x & offset))
-            {
-                part3--;
-            }
-        }
-        else
-        {
-            while(part3 < end - 1)
-            {
-                part3++;
-
-                if(field[part3].x & offset)
-                {
-                    part3--;
-                    break;
-                }
-            }
-        }
-
-
-    }
-    else if(true)
-    {
-        var offset = this.pow2(level - 1),
-            part1,
-            part2 = start,
-            part3,
-            min = start, 
-            max = end,
-            mid;
-
-        while(min < max)
-        {
-            mid = min + (max - min >> 1);
-
-            if(field[mid].y & offset)
-            {
-                part2 = max = mid;
-            }
-            else
-            {
-                part2 = min = mid + 1;
-            }
-        }
-
-        min = part1 = start;
-        max = part2;
-
-        while(min < max)
-        {
-            mid = min + (max - min >> 1);
-
-            if(field[mid].x & offset)
-            {
-                part1 = max = mid;
-            }
-            else
-            {
-                part1 = min = mid + 1;
-            }
-        }
-
-        min = part3 = part2;
-        max = end;
-
-        while(min < max)
-        {
-            mid = min + (max - min >> 1);
-
-            if(field[mid].x & offset)
-            {
-                part3 = max = mid;
-            }
-            else
-            {
-                part3 = min = mid + 1;
-            }
-        }
-    }
-
-    //else
-    if(false)
-    {
-        var offset = this.pow2(level - 1),
-            i = start,
-            part1,
-            part2,
-            part3;
-
-        while(i < end && ((field[i].x | field[i].y) & offset) === 0)
-        {
-            i++;
-        }
-
-        //part1 = i;
-
-        while(i < end && (field[i].y & offset) === 0)
-        {
-            i++;
-        }
-
-        //if(i != part2)
-        //console.log(i, part2, start, end, start + (end - start >> 1));
-        //part2 = i;
-
-        while(i < end && (field[i].x & offset) === 0)
-        {
-            i++;
-        }
-
-        //part3 = i;
-    }
-
-    level--;
-
-    return this.create_tree(
-        this.setup_field_recurse(start, part1, field, level),
-        this.setup_field_recurse(part1, part2, field, level),
-        this.setup_field_recurse(part2, part3, field, level),
-        this.setup_field_recurse(part3, end, field, level)
-    );
-}
-
-LifeUniverse.prototype.compare = function(p1, p2)
-{
-    var y = p1.y ^ p2.y,
-        x = p1.x ^ p2.x;
-
-    if(y < x && y < (y ^ x))
-    {
-        return p1.x - p2.x;
-    }
-    else
-    {
-        return p1.y - p2.y;
-    }
-}
-
-
-LifeUniverse.prototype.partition = function(items, left, right)
-{
-    var pivot = items[right + left >> 1],
-        i = left,
-        j = right,
+    // Like quicksort's partition: Seperate the values from start to end by
+    // the bitmask in offset in the array test_field, returning the middle
+    var i = start,
+        j = end,
         swap;
 
     while(i <= j)
     {
-        while(this.compare(items[i], pivot) < 0)
+        while(i <= end && (test_field[i] & offset) === 0)
         {
             i++;
         }
 
-        while(this.compare(items[j], pivot) > 0)
+        while(j > start && (test_field[j] & offset))
         {
             j--;
         }
 
-        if(i <= j)
+        if(i >= j)
         {
-            swap = items[i];
-            items[i] = items[j];
-            items[j] = swap;
-
-            i++;
-            j--;
+            break;
         }
+
+        swap = test_field[i];
+        test_field[i] = test_field[j];
+        test_field[j] = swap;
+
+        swap = other_field[i];
+        other_field[i] = other_field[j];
+        other_field[j] = swap;
+
+        i++;
+        j--;
     }
 
     return i;
-}
+};
 
-
-LifeUniverse.prototype.quick_sort = function(items, left, right)
+LifeUniverse.prototype.setup_field_recurse = function(start, end, field_x, field_y, level)
 {
-    if(items.length <= 1)
+    if(start > end)
     {
-        return items;
+        return this.empty_tree(level);
     }
 
-    var index = this.partition(items, left, right);
-
-    if(left < index - 1)
+    if(level === 2)
     {
-        this.quick_sort(items, left, index - 1);
+        return this.level2_setup(start, end, field_x, field_y);
     }
 
-    if(index < right)
-    {
-        this.quick_sort(items, index, right);
-    }
+    level--;
 
-    return items;
-}
+    var offset = 1 << level,
+        // here we split the field from start to end into 4 parts:
+        //   [Start, part2] -> nw
+        //   [Part2, part3] -> ne
+        //   [Part3, part4] -> sw
+        //   [Part4, end  ] -> se
+        //
+        // First we split [start, end] into north and south by partitioning 
+        // by the y coordinates. Next we split the two halfes by the x coordinate.
+        part3 = this.partition(start, end,       field_y, field_x, offset),
+        part2 = this.partition(start, part3 - 1, field_x, field_y, offset),
+        part4 = this.partition(part3, end,       field_x, field_y, offset);
 
-LifeUniverse.prototype.setup_field_from_tree = function(node, level)
+
+    return this.create_tree(
+        this.setup_field_recurse(start, part2 - 1, field_x, field_y, level),
+        this.setup_field_recurse(part2, part3 - 1, field_x, field_y, level),
+        this.setup_field_recurse(part3, part4 - 1, field_x, field_y, level),
+        this.setup_field_recurse(part4, end,       field_x, field_y, level)
+    );
+};
+
+LifeUniverse.prototype.level2_setup = function(start, end, field_x, field_y)
 {
-    if(level === 1)
-    {
-        return this.create_tree(
-            node.nw ? this.true_leaf : this.false_leaf,
-            node.ne ? this.true_leaf : this.false_leaf,
-            node.sw ? this.true_leaf : this.false_leaf,
-            node.se ? this.true_leaf : this.false_leaf
-        );
-    }
-    else
-    {
-        level--;
+    var set = 0,
+        x, 
+        y;
 
-        return this.create_tree(
-            node.nw ? this.setup_field_from_tree(node.nw, level) : this.empty_tree(level),
-            node.ne ? this.setup_field_from_tree(node.ne, level) : this.empty_tree(level),
-            node.sw ? this.setup_field_from_tree(node.sw, level) : this.empty_tree(level),
-            node.se ? this.setup_field_from_tree(node.se, level) : this.empty_tree(level)
-        );
+    for(var i = start; i <= end; i++)
+    {
+        x = field_x[i];
+        y = field_y[i];
+
+        // interleave 2-bit x and y values
+        set |= 1 << (x & 1 | (y & 1 | x & 2) << 1 | (y & 2) << 2);
+        //set |= 1 << ((0xA820 >> ((y & 3) << 2) | 0x5410 >> ((x & 3) << 2) & 15));
     }
-}
+
+    if(this.level2_cache[set])
+    {
+        return this.level2_cache[set];
+    }
+
+    return this.level2_cache[set] = this.create_tree(
+        this.level1_create(set),
+        this.level1_create(set >> 4),
+        this.level1_create(set >> 8),
+        this.level1_create(set >> 12)
+    );
+};
 
 LifeUniverse.prototype.setup_meta = function(otca_on, otca_off, field, bounds)
 {
     var level = this.get_level_from_bounds(bounds),
         node = this.field2tree(field, level);
-
 
     this.root = setup_meta_from_tree(node, level + 11);
 
@@ -1002,20 +730,21 @@ LifeUniverse.prototype.setup_meta = function(otca_on, otca_off, field, bounds)
             );
         }
     }
-}
+};
 
 
-/*LifeUniverse.prototype.get_field = function(node)
-{
-    var offset = this.pow2(node.level - 1),
-        field = [];
+//LifeUniverse.prototype.get_field = function(node)
+//{
+//    var offset = this.pow2(node.level - 1),
+//        field = [];
+//
+//    this.node_get_field(node, -offset, -offset, field);
+//    //node.get_field(-offset, -offset, field);
+//    
+//    return field;
+//};
 
-    this.node_get_field(node, -offset, -offset, field);
-    //node.get_field(-offset, -offset, field);
-    
-    return field;
-}*/
-
+// set the base step for generations forward
 LifeUniverse.prototype.set_step = function(step)
 {
     if(step !== this.step)
@@ -1023,8 +752,10 @@ LifeUniverse.prototype.set_step = function(step)
         this.step = step;
 
         if(this.generation > 0) {
+            // if a step has occured, caches need to be cleared
             this.uncache(false);
             this.empty_tree_cache = [];
+            this.level2_cache = Array(0x10000);
         }
     }
 };
@@ -1039,15 +770,15 @@ LifeUniverse.prototype.set_rules = function(s, b)
         if(this.generation > 0) {
             this.uncache(true);
             this.empty_tree_cache = [];
+            this.level2_cache = Array(0x10000);
         }
     }
 };
 
-
 /**
  * @constructor
  */
-function TreeNode(nw, ne, sw, se, id)
+LifeUniverse.prototype.TreeNode = function(nw, ne, sw, se, id)
 {
     this.nw = nw;
     this.ne = ne;
@@ -1067,6 +798,9 @@ function TreeNode(nw, ne, sw, se, id)
     // 2^(level - 2) generations forward
     this.quick_cache = null;
 
+    // next entry in the hashmap if this node occupies the same slot
+    this.hashmap_next = undefined;
+
     /*if(this.population === 0)
     {
         this.cache = this.quick_cache = nw;
@@ -1080,7 +814,7 @@ LifeUniverse.prototype.node_set_bit = function(node, x, y, living)
         return living ? this.true_leaf : this.false_leaf;
     }
 
-    var offset = this.pow2(node.level - 1) / 2,
+    var offset = node.level === 1 ? 0 : this.pow2(node.level - 2),
         nw = node.nw,
         ne = node.ne,
         sw = node.sw,
@@ -1120,10 +854,11 @@ LifeUniverse.prototype.node_get_bit = function(node, x, y)
     }
     if(node.level === 0)
     {
+        // other level 0 case is handled above
         return true;
     }
 
-    var offset = this.pow2(node.level - 1) / 2;
+    var offset = node.level === 1 ? 0 : this.pow2(node.level - 2);
     
     if(x < 0)
     {
@@ -1149,20 +884,27 @@ LifeUniverse.prototype.node_get_bit = function(node, x, y)
     }
 };
 
-/*LifeUniverse.prototype.node_get_field = function(node, left, top, field)
+LifeUniverse.prototype.node_get_field = function(node, left, top, field)
 {
     if(node.population === 0)
     {
         return;
     }
 
-    var offset = this.pow2(node.level - 1);
+    if(node.level === 0)
+    {
+        field.push({ x: left, y: top });
+    }
+    else
+    {
+        var offset = this.pow2(node.level - 1);
 
-    this.node_get_field(node.nw, left, top, field);
-    this.node_get_field(node.sw, left + offset, top, field);
-    this.node_get_field(node.ne, left, top + offset, field);
-    this.node_get_field(node.se, left + offset, top + offset, field);
-};*/
+        this.node_get_field(node.nw, left, top, field);
+        this.node_get_field(node.sw, left, top + offset, field);
+        this.node_get_field(node.ne, left + offset, top, field);
+        this.node_get_field(node.se, left + offset, top + offset, field);
+    }
+};
 
 LifeUniverse.prototype.node_level2_next = function(node)
 {
@@ -1176,11 +918,12 @@ LifeUniverse.prototype.node_level2_next = function(node)
             sw.nw.population <<  7 | sw.ne.population <<  6 | se.nw.population <<  5 | se.ne.population <<  4 |
             sw.sw.population <<  3 | sw.se.population <<  2 | se.sw.population <<  1 | se.se.population;
 
-    return this.create_tree(
-        this.eval_mask(bitmask >> 5), 
-        this.eval_mask(bitmask >> 4), 
-        this.eval_mask(bitmask >> 1), 
-        this.eval_mask(bitmask)
+
+    return this.level1_create(
+        this.eval_mask(bitmask >> 5) | 
+        this.eval_mask(bitmask >> 4) << 1 | 
+        this.eval_mask(bitmask >> 1) << 2 | 
+        this.eval_mask(bitmask) << 3
     );
 
 };
@@ -1268,8 +1011,15 @@ LifeUniverse.prototype.node_quick_next_generation = function(node)
 
 LifeUniverse.prototype.node_hash = function(node)
 {
-    if(this.add_hash(node))
+    if(!this.in_hashmap(node))
     {
+        // Update the id. We have looked for an old id, as
+        // the the hashmap has been cleared and ids have been
+        // reset, but this cannot avoided without iterating
+        // the tree twice.
+        node.id = this.last_id++;
+        node.hashmap_next = undefined;
+
         if(node.level > 1)
         {
             this.node_hash(node.nw);
@@ -1284,6 +1034,45 @@ LifeUniverse.prototype.node_hash = function(node)
                 this.node_hash(node.quick_cache);
             }
         }
+
+        this.hashmap_insert(node);
     }
 };
+
+LifeUniverse.prototype.node_get_boundary = function(node, left, top, boundary)
+{
+    if(node.population === 0)
+    {
+        return;
+    }
+
+    if(node.level === 0)
+    {
+        if(left < boundary.left)
+            boundary.left = left;
+        if(left > boundary.right)
+            boundary.right = left;
+
+        if(top < boundary.top)
+            boundary.top = top;
+        if(top > boundary.bottom)
+            boundary.bottom = top;
+    }
+    else
+    {
+        var offset = this.pow2(node.level - 1);
+
+        if(left >= boundary.left && left + offset * 2 <= boundary.right &&
+            top >= boundary.top && top + offset * 2 <= boundary.bottom)
+        {
+            return;
+        }
+
+        this.node_get_boundary(node.nw, left, top, boundary);
+        this.node_get_boundary(node.sw, left, top + offset, boundary);
+        this.node_get_boundary(node.ne, left + offset, top, boundary);
+        this.node_get_boundary(node.se, left + offset, top + offset, boundary);
+    }
+};
+
 

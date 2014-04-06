@@ -68,7 +68,7 @@ var
         /** @type {boolean} */
         patterns_loaded = false,
 
-        /* 
+        /**
          * path to the folder with all patterns 
          * @const
          */
@@ -235,6 +235,9 @@ var
 
         function try_load_meta()
         {
+            // loading metapixels is broken now, keep this for later
+            load_random();
+            /*
             var otca_on, otca_off, otca_pattern;
 
             show_overlay("loading_popup");
@@ -280,6 +283,7 @@ var
                 // fallback to random pattern
                 load_random();
             });
+            */
         }
 
         function try_load_pattern()
@@ -289,7 +293,9 @@ var
                 pattern_path + pattern_parameter + ".rle", 
                 function(text)
                 {
+                    //console.profile("main setup");
                     setup_pattern(text, pattern_parameter);
+                    //console.profileEnd("main setup");
                 },
                 function()
                 {
@@ -985,8 +991,7 @@ var
 
         stop(function()
         {
-            var field = result.field, 
-                bounds = life.get_bounds(field),
+            var bounds = life.get_bounds(result.field_x, result.field_y),
                 relative_size = Math.min(
                     4, // maximum cell size 
                     window.innerWidth / Math.abs(bounds.left - bounds.right), // relative width
@@ -1005,8 +1010,8 @@ var
             }
 
             life.clear_pattern();
-            life.make_center(result.field, bounds);
-            life.setup_field(result.field, bounds);
+            life.make_center(result.field_x, result.field_y, bounds);
+            life.setup_field(result.field_x, result.field_y, bounds);
 
             if(result.rule_s && result.rule_b)
             {
@@ -1037,7 +1042,7 @@ var
     /*
      * load a pattern consisting of otca metapixels
      */
-    function load_otca(otca_on, otca_off, field)
+    /*function load_otca(otca_on, otca_off, field)
     {
         var bounds = life.get_bounds(field);
 
@@ -1051,8 +1056,7 @@ var
 
         update_hud();
         drawer.redraw(life.root);
-    }
-
+    }*/
 
     function run()
     {
@@ -1385,6 +1389,7 @@ var
         }
     }
 
+    /** @param {string=} title */
     function set_title(title)
     {
         if(title)
