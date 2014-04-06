@@ -1,5 +1,21 @@
 "use strict";
 
+var 
+    /** @const */
+    MIN_BUFFER_SIZE = 0x100,
+
+    /** 
+     * A
+     * @const 
+     */
+    MAX_BUFFER_SIZE = 0x1000000,
+
+    /** 
+     * An estimated guess for the density of a Life pattern, in alive/cell
+     * @const 
+     */
+    DENSITY_ESTIMATE = .009;
+
 var formats = (function()
 {
 
@@ -21,13 +37,18 @@ var formats = (function()
             result = parse_comments(pattern_string, "#"),
             x = 0, y = 0, 
             header_match, 
-            expr = /([a-z]+) *= *([a-z0-9\/]+)/gi,
+            expr = /([a-zA-Z]+) *= *([a-zA-Z0-9\/]+)/g,
             match;
 
         pattern_string = result.pattern_string;
-        result.field = [];
+        var pos = pattern_string.indexOf("\n");
 
-        while(header_match = expr.exec(pattern_string))
+        if(pos === -1)
+        {
+            return { error : "RLE Syntax Error: No Header" };
+        }
+
+        while(header_match = expr.exec(pattern_string.substr(0, pos)))
         {
             switch(header_match[1])
             {
@@ -51,7 +72,6 @@ var formats = (function()
                     return { error : "RLE Syntax Error: Invalid Header" };
             }
         }
-
         /*
            Today I learned:
 
@@ -66,11 +86,27 @@ var formats = (function()
            => parsing character by character with str comparisons is same speed as re.exec
            => number comparisons are way faster than single character comparisons
         */
-        //var t = Date.now();
+        //console.time("parse rle");
 
-        var count, 
+        var initial_size = MIN_BUFFER_SIZE;
+
+        if(result.width && result.height)
+        {
+            var size = result.width * result.height;
+
+            if(size > 0)
+            {
+                initial_size = Math.max(initial_size, size * DENSITY_ESTIMATE | 0);
+                initial_size = Math.min(MAX_BUFFER_SIZE, initial_size);
+            }
+        }
+
+        var count = 1, 
+            in_number = false,
             chr,
-            pos = pattern_string.indexOf("\n"),
+            field_x = new Int32Array(initial_size),
+            field_y = new Int32Array(initial_size),
+            alive_count = 0,
             len = pattern_string.length;
 
         for(; pos < len; pos++)
@@ -79,46 +115,66 @@ var formats = (function()
 
             if(chr >= 48 && chr <= 57)
             {
-                count = 0;
-
-                do
+                if(in_number)
                 {
                     count *= 10;
-                    count += chr - 48;
-                    pos++;
-                    chr = pattern_string.charCodeAt(pos);
+                    count += chr ^ 48;
                 }
-                while(chr >= 48 && chr <= 57)
-            }
-            else
-            {
-                count = 1;
-            }
-            
-            if(chr === 98) // b
-            {
-                x += count;
-            }
-            else if(chr === 111) // o
-            {
-                while(count--)
+                else
                 {
-                    result.field.push({ x: x++, y: y })
+                    count = chr ^ 48;
+                    in_number = true;
                 }
             }
-            else if(chr === 36) // $
+            else 
             {
-                y += count;
-                x = 0;
-            }
-            else if(chr === 33) // !
-            {
-                break;
+                if(chr === 98) // b
+                {
+                    x += count;
+                }
+                else if(chr === 111) // o
+                {
+                    if(alive_count + count > field_x.length)
+                    {
+                        field_x = increase_buf_size(field_x);
+                        field_y = increase_buf_size(field_y);
+                    }
+
+                    while(count--)
+                    {
+                        field_x[alive_count] = x++;
+                        field_y[alive_count] = y;
+                        alive_count++;
+                    }
+                }
+                else if(chr === 36) // $
+                {
+                    y += count;
+                    x = 0;
+                }
+                else if(chr === 33) // !
+                {
+                    break;
+                }
+
+                count = 1;
+                in_number = false;
             }
         }
-        //console.log("rle parse", Date.now() - t);
+        //console.timeEnd("parse rle");
+        //console.log(initial_size, alive_count);
+
+        result.field_x = new Int32Array(field_x.buffer, 0, alive_count);
+        result.field_y = new Int32Array(field_y.buffer, 0, alive_count);
 
         return result;
+    }
+
+    function increase_buf_size(buffer)
+    {
+        var new_buffer = new Int32Array(buffer.length * 1.5 | 0);
+        new_buffer.set(buffer);
+        return new_buffer;
     }
 
     function parse_life105(pattern_string)
@@ -136,17 +192,19 @@ var formats = (function()
         // a list of coordinates essentially
         var expr = /\s*(-?\d+)\s+(-?\d+)\s*(?:\n|$)/g, 
             match,
-            field = [];
+            field_x = [],
+            field_y = [];
 
         while(match = expr.exec(pattern_string))
         {
-            field.push({ 
-                x: Number(match[1]), 
-                y: Number(match[2])
-            });
+            field_x.push(Number(match[1]));
+            field_y.push(Number(match[2]));
         }
         
-        return { field: field };
+        return { 
+            field_x: field_x,
+            field_y: field_y,
+        };
     }
 
     function parse_plaintext(pattern_string)
@@ -155,7 +213,8 @@ var formats = (function()
 
         pattern_string = result.pattern_string;
         
-        var field = [], 
+        var field_x = [], 
+            field_y = [], 
             x = 0, 
             y = 0, 
             len = pattern_string.length;
@@ -169,7 +228,8 @@ var formats = (function()
                 break;
                     
                 case "O":
-                    field.push({ x: x++, y: y });
+                    field_x.push(x++)
+                    field_y.push(y)
                 break;
                     
                 case "\n":
@@ -191,7 +251,8 @@ var formats = (function()
             }
         }
 
-        result.field = field;
+        result.field_x = field_x;
+        result.field_y = field_y;
         
         return result;
     }
