@@ -6,7 +6,16 @@ var
     /** @const */
     INITIAL_SIZE = 16,
     /** @const */
-    HASHMAP_LIMIT = 24;
+    HASHMAP_LIMIT = 24,
+
+    /** @const */
+    MASK_LEFT = 1,
+    /** @const */
+    MASK_TOP = 2,
+    /** @const */
+    MASK_RIGHT = 4,
+    /** @const */
+    MASK_BOTTOM = 8;
 
 
 
@@ -172,7 +181,7 @@ LifeUniverse.prototype.get_root_bounds = function()
         },
         offset = this.pow2(this.root.level - 1);
 
-    this.node_get_boundary(this.root, -offset, -offset, bounds);
+    this.node_get_boundary(this.root, -offset, -offset, MASK_TOP | MASK_LEFT | MASK_BOTTOM | MASK_RIGHT, bounds);
 
     return bounds;
 };
@@ -1070,9 +1079,9 @@ LifeUniverse.prototype.node_hash = function(node)
     }
 };
 
-LifeUniverse.prototype.node_get_boundary = function(node, left, top, boundary)
+LifeUniverse.prototype.node_get_boundary = function(node, left, top, find_mask, boundary)
 {
-    if(node.population === 0)
+    if(node.population === 0 || !find_mask)
     {
         return;
     }
@@ -1096,13 +1105,44 @@ LifeUniverse.prototype.node_get_boundary = function(node, left, top, boundary)
         if(left >= boundary.left && left + offset * 2 <= boundary.right &&
             top >= boundary.top && top + offset * 2 <= boundary.bottom)
         {
+            // this square is already inside the found boundary
             return;
         }
 
-        this.node_get_boundary(node.nw, left, top, boundary);
-        this.node_get_boundary(node.sw, left, top + offset, boundary);
-        this.node_get_boundary(node.ne, left + offset, top, boundary);
-        this.node_get_boundary(node.se, left + offset, top + offset, boundary);
+        var find_nw = find_mask,
+            find_sw = find_mask,
+            find_ne = find_mask,
+            find_se = find_mask;
+
+        if(node.nw.population)
+        {
+            find_sw &= ~MASK_TOP;
+            find_ne &= ~MASK_LEFT;
+            find_se &= ~MASK_TOP & ~MASK_LEFT;
+        }
+        if(node.sw.population)
+        {
+            find_se &= ~MASK_LEFT;
+            find_nw &= ~MASK_BOTTOM;
+            find_ne &= ~MASK_BOTTOM & ~MASK_LEFT;
+        }
+        if(node.ne.population)
+        {
+            find_nw &= ~MASK_RIGHT;
+            find_se &= ~MASK_TOP;
+            find_sw &= ~MASK_TOP & ~MASK_RIGHT;
+        }
+        if(node.se.population)
+        {
+            find_sw &= ~MASK_RIGHT;
+            find_ne &= ~MASK_BOTTOM;
+            find_nw &= ~MASK_BOTTOM & ~MASK_RIGHT;
+        }
+
+        this.node_get_boundary(node.nw, left, top, find_nw, boundary);
+        this.node_get_boundary(node.sw, left, top + offset, find_sw, boundary);
+        this.node_get_boundary(node.ne, left + offset, top, find_ne, boundary);
+        this.node_get_boundary(node.se, left + offset, top + offset, find_se, boundary);
     }
 };
 
