@@ -146,6 +146,21 @@ LifeUniverse.prototype.get_bit = function(x, y)
     }
 };
 
+LifeUniverse.prototype.get_root_bounds = function()
+{
+    var bounds = {
+            top: Infinity,
+            left: Infinity,
+            bottom: -Infinity,
+            right: -Infinity,
+        },
+        offset = this.pow2(this.root.level - 1);
+
+    this.node_get_boundary(this.root, -offset, -offset, bounds);
+
+    return bounds;
+};
+
 LifeUniverse.prototype.empty_tree = function(level)
 {
     if(this.empty_tree_cache[level]) {

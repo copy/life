@@ -41,6 +41,7 @@ function LifeCanvasDrawer()
     this.move = move;
     this.zoom = zoom;
     this.zoom_centered = zoom_centered;
+    this.fit_bounds = fit_bounds;
     this.set_size = set_size;
     this.draw_cell = draw_cell;
     this.center_view = center_view;
@@ -270,6 +271,38 @@ function LifeCanvasDrawer()
         //{
         //    redraw_part(node, 0, 0, canvas_width, dy);
         //}
+    }
+
+    function fit_bounds(bounds)
+    {
+        var width = bounds.right - bounds.left,
+            height = bounds.bottom - bounds.top,
+            relative_size,
+            x, 
+            y;
+
+        if(isFinite(width) && isFinite(height))
+        {
+            relative_size = Math.min(
+                16, // maximum cell size 
+                canvas_width / width, // relative width
+                canvas_height / height // relative height
+            );
+            x = Math.round(canvas_width / 2 - (bounds.left + width / 2) * drawer.cell_width);
+            y = Math.round(canvas_height / 2 - (bounds.top + height / 2) * drawer.cell_width);
+        }
+        else
+        {
+            // can happen if the pattern is empty or very large
+            relative_size = 16;
+            x = canvas_width >> 1;
+            y = canvas_height >> 1;
+        }
+
+        zoom_to(relative_size);
+
+        canvas_offset_x = x;
+        canvas_offset_y = y;
     }
 
     function draw_cell(x, y, set)

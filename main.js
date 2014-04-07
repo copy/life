@@ -687,8 +687,7 @@ var
 
             $("initial_pos_button").onclick = function()
             {
-                drawer.zoom_to(1);
-                drawer.center_view();
+                fit_pattern();
                 lazy_redraw(life.root);
                 update_hud();
             };
@@ -991,18 +990,8 @@ var
 
         stop(function()
         {
-            var bounds = life.get_bounds(result.field_x, result.field_y),
-                relative_size = Math.min(
-                    4, // maximum cell size 
-                    window.innerWidth / Math.abs(bounds.left - bounds.right), // relative width
-                    window.innerHeight / Math.abs(bounds.top - bounds.bottom) // relative height
-                );
-            
-            // minimum cell size
-            //relative_size = Math.max(relative_size, 0.5);
-
-            drawer.center_view();
-            drawer.zoom_to(relative_size);
+            var bounds = life.get_bounds(result.field_x, result.field_y);
+            console.log(bounds);
 
             if(pattern_link && !result.title)
             {
@@ -1024,6 +1013,7 @@ var
 
             hide_element($("overlay"));
 
+            fit_pattern();
             drawer.redraw(life.root);
             
             update_hud();
@@ -1037,6 +1027,13 @@ var
                 link : pattern_link
             };
         });
+    }
+
+    function fit_pattern()
+    {
+        var bounds = life.get_root_bounds();
+
+        drawer.fit_bounds(bounds);
     }
 
     /*
