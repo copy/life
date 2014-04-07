@@ -227,6 +227,7 @@ LifeUniverse.prototype.uncache = function(also_quick)
         if(node !== undefined)
         {
             node.cache = null;
+            node.hashmap_next = undefined;
 
             if(also_quick)
                 node.quick_cache = null;
