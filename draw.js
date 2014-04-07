@@ -288,18 +288,19 @@ function LifeCanvasDrawer()
                 canvas_width / width, // relative width
                 canvas_height / height // relative height
             );
+            zoom_to(relative_size);
+
             x = Math.round(canvas_width / 2 - (bounds.left + width / 2) * drawer.cell_width);
             y = Math.round(canvas_height / 2 - (bounds.top + height / 2) * drawer.cell_width);
         }
         else
         {
             // can happen if the pattern is empty or very large
-            relative_size = 16;
+            zoom_to(16);
+
             x = canvas_width >> 1;
             y = canvas_height >> 1;
         }
-
-        zoom_to(relative_size);
 
         canvas_offset_x = x;
         canvas_offset_y = y;
