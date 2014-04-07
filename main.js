@@ -323,10 +323,11 @@ var
             $("about_close").style.display = "inline";
 
             hide_element($("notice"));
-            hide_element($("overlay"));
+            hide_overlay();
 
             show_element($("toolbar"));
             show_element($("statusbar"));
+            show_element($("about_main"));
 
             var style_element = document.createElement("style");
             document.head.appendChild(style_element);
@@ -579,7 +580,7 @@ var
                 else if(chr === 27)
                 {
                     // escape
-                    hide_element($("overlay"));
+                    hide_overlay();
                     return false;
                 }
                 else if(chr === 13)
@@ -748,7 +749,7 @@ var
 
             $("import_abort").onclick = function()
             {
-                hide_element($("overlay"));
+                hide_overlay();
             };
 
             $("import_button").onclick = function()
@@ -765,7 +766,7 @@ var
                     new_rule_b,
                     new_gen_step;
                 
-                hide_element($("overlay"));
+                hide_overlay();
                 
                 new_rule_s = formats.parse_rule($("rule").value, true);
                 new_rule_b = formats.parse_rule($("rule").value, false);
@@ -819,7 +820,7 @@ var
                 
                 lazy_redraw(life.root);
                 
-                hide_element($("overlay"));
+                hide_overlay();
             }
 
             $("settings_button").onclick = function()
@@ -840,7 +841,7 @@ var
                 $("alert_close").onclick = 
                 $("about_close").onclick = function()
             {
-                hide_element($("overlay"));
+                hide_overlay();
             };
 
             $("pattern_name").onclick = function()
@@ -1010,7 +1011,7 @@ var
                 life.set_rules(1 << 2 | 1 << 3, 1 << 3);
             }
 
-            hide_element($("overlay"));
+            hide_overlay();
 
             fit_pattern();
             drawer.redraw(life.root);
@@ -1166,6 +1167,9 @@ var
     {
         show_element($("overlay"));
 
+        // allow scroll bars when overlay is visible
+        document.body.style.overflow = "auto";
+
         var overlays = $("overlay").children;
 
         for(var i = 0; i < overlays.length; i++)
@@ -1181,6 +1185,12 @@ var
                 hide_element(child);
             }
         }
+    }
+
+    function hide_overlay()
+    {
+        hide_element($("overlay"));
+        document.body.style.overflow = "hidden";
     }
 
     /**
