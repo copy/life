@@ -233,6 +233,7 @@ var
         {
             // loading metapixels is broken now, keep this for later
             load_random();
+
             /*
             var otca_on, otca_off, otca_pattern;
 
@@ -998,6 +999,8 @@ var
             life.clear_pattern();
             life.make_center(result.field_x, result.field_y, bounds);
             life.setup_field(result.field_x, result.field_y, bounds);
+
+            life.save_rewind_state();
 
             if(result.rule_s && result.rule_b)
             {
