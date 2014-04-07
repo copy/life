@@ -57,10 +57,6 @@ var
         /** @type {boolean} */
         running = false,
 
-        // state to rewind the field
-        rewind_state,
-
-
         /** @type {number} */
         max_fps,
 
@@ -410,14 +406,15 @@ var
             
             $("rewind_button").onclick = function()
             {
-                if(rewind_state)
+                if(life.rewind_state)
                 {
                     stop(function()
                     {
-                        life.root = rewind_state;
-                        life.generation = 0;
+                        life.restore_rewind_state();
                 
+                        fit_pattern();
                         drawer.redraw(life.root);
+
                         update_hud();
                     });
                 }
@@ -1070,7 +1067,7 @@ var
         
         if(life.generation === 0)
         {
-            rewind_state = life.root;
+            life.save_rewind_state();
         }
         
         interval = setInterval(function()
@@ -1125,7 +1122,7 @@ var
         
         if(life.generation === 0)
         {
-            rewind_state = life.root;
+            life.save_rewind_state();
         }
         
         life.next_generation(is_single);

@@ -59,6 +59,8 @@ function LifeUniverse()
 
     this.root = null;
 
+    this.rewind_state = null;
+
     /** 
      * number of generations to calculate at one time,
      * written as 2^n
@@ -91,6 +93,20 @@ LifeUniverse.prototype.pow2 = function(x)
         return Infinity;
 
     return this._powers[x];
+};
+
+LifeUniverse.prototype.save_rewind_state = function()
+{
+    this.rewind_state = this.root;
+};
+
+LifeUniverse.prototype.restore_rewind_state = function()
+{
+    this.generation = 0;
+    this.root = this.rewind_state;
+
+    // make sure to rebuild the hashmap, in case its size changed
+    this.garbage_collect();
 };
 
 LifeUniverse.prototype.eval_mask = function(bitmask)
