@@ -991,7 +991,6 @@ var
         stop(function()
         {
             var bounds = life.get_bounds(result.field_x, result.field_y);
-            console.log(bounds);
 
             if(pattern_link && !result.title)
             {
