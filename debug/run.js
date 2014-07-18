@@ -41,17 +41,17 @@ function load_and_run(pattern_str, name, tests)
     pattern = formats.parse_pattern(pattern_str);
     print("  parse_pattern " + (Date.now() - timer));
 
-    bounds = life.get_bounds(pattern.field);
+    bounds = life.get_bounds(pattern.field_x, pattern.field_y);
 
     assert(!pattern.error, pattern.error);
 
 
     life.clear_pattern();
 
-    life.make_center(pattern.field, bounds);
+    life.make_center(pattern.field_x, pattern.field_y, bounds);
 
     timer = Date.now();
-    life.setup_field(pattern.field, bounds);
+    life.setup_field(pattern.field_x, pattern.field_y, bounds);
     print("  setup_field " + (Date.now() - timer));
 
     for(var i = 0; i < tests.length; i++)
@@ -83,23 +83,23 @@ load_and_run(
         },
 
         {
-            name: "256 generations",
+            name: "16 generations",
             f: function(life) { 
-                life.set_step(8); // 256 generations at once
+                life.set_step(4); // 16 generations at once
 
-                for(var i = 0; i < 5; i++)
+                for(var i = 0; i < 1; i++)
                     life.next_generation(true);
             },
         },
 
-        {
-            name: "4096 generations",
-            f: function(life) { 
-                life.set_step(12); 
+        //{
+        //    name: "4096 generations",
+        //    f: function(life) { 
+        //        life.set_step(12); 
 
-                life.next_generation(true);
-            },
-        },
+        //        life.next_generation(true);
+        //    },
+        //},
     ]
 );
 
