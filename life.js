@@ -441,9 +441,9 @@ LifeUniverse.prototype.get_bounds = function(field_x, field_y)
 
     var bounds = {
             top : field_y[0], 
-            left : field_x[1], 
+            left : field_x[0], 
             bottom : field_y[0], 
-            right : field_x[1]
+            right : field_x[0]
         },
         len = field_x.length;
     
