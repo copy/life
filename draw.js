@@ -137,9 +137,10 @@ function LifeCanvasDrawer()
             width += x;
             x = 0;
         }
-        else if(x + width > canvas_width)
+
+        if(x + width > canvas_width)
         {
-            width -= canvas_width - x;
+            width = canvas_width - x;
         }
 
         if(y < 0)
@@ -147,9 +148,15 @@ function LifeCanvasDrawer()
             height += y;
             y = 0;
         }
-        else if(y + height > canvas_height)
+
+        if(y + height > canvas_height)
         {
-            height -= canvas_height - y;
+            height = canvas_height - y;
+        }
+
+        if(width <= 0 || height <= 0)
+        {
+            return;
         }
         
         var pointer = x + y * canvas_width << 2,
