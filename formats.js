@@ -1,20 +1,22 @@
 "use strict";
 
-var 
+var
     /** @const */
     MIN_BUFFER_SIZE = 0x100,
 
-    /** 
+    /**
      * A
-     * @const 
+     * @const
      */
     MAX_BUFFER_SIZE = 0x1000000,
 
-    /** 
+    /**
      * An estimated guess for the density of a Life pattern, in alive/cell
-     * @const 
+     * @const
      */
     DENSITY_ESTIMATE = .009;
+
+
 
 var formats = (function()
 {
@@ -33,10 +35,10 @@ var formats = (function()
 
     function parse_rle(pattern_string)
     {
-        var 
+        var
             result = parse_comments(pattern_string, "#"),
-            x = 0, y = 0, 
-            header_match, 
+            x = 0, y = 0,
+            header_match,
             expr = /([a-zA-Z]+) *= *([a-zA-Z0-9\/]+)/g,
             match;
 
@@ -55,18 +57,19 @@ var formats = (function()
                 case "x":
                     result.width = Number(header_match[2]);
                     break;
-                    
+
                 case "y":
                     result.height = Number(header_match[2]);
                     break;
-                    
+
                 case "rule":
                     result.rule_s = parse_rule_rle(header_match[2], true);
                     result.rule_b = parse_rule_rle(header_match[2], false);
 
                     result.comment += "\nRule: " + rule2str(result.rule_s, result.rule_b) + "\n";
+                    result.rule = rule2str(result.rule_s, result.rule_b);
                     break;
-                    
+
                 default:
                     //console.log(header_match);
                     return { error : "RLE Syntax Error: Invalid Header" };
@@ -101,7 +104,7 @@ var formats = (function()
             }
         }
 
-        var count = 1, 
+        var count = 1,
             in_number = false,
             chr,
             field_x = new Int32Array(initial_size),
@@ -126,7 +129,7 @@ var formats = (function()
                     in_number = true;
                 }
             }
-            else 
+            else
             {
                 if(chr === 98) // b
                 {
@@ -180,17 +183,17 @@ var formats = (function()
     function parse_life105(pattern_string)
     {
         var result = parse_comments(pattern_string, "#");
-        
+
         // defunctional now
         // parsing this is similiar to plaintext
-        
+
         return result;
     }
 
     function parse_life106(pattern_string)
     {
         // a list of coordinates essentially
-        var expr = /\s*(-?\d+)\s+(-?\d+)\s*(?:\n|$)/g, 
+        var expr = /\s*(-?\d+)\s+(-?\d+)\s*(?:\n|$)/g,
             match,
             field_x = [],
             field_y = [];
@@ -200,8 +203,8 @@ var formats = (function()
             field_x.push(Number(match[1]));
             field_y.push(Number(match[2]));
         }
-        
-        return { 
+
+        return {
             field_x: field_x,
             field_y: field_y,
         };
@@ -212,13 +215,13 @@ var formats = (function()
         var result = parse_comments(pattern_string, "!");
 
         pattern_string = result.pattern_string;
-        
-        var field_x = [], 
-            field_y = [], 
-            x = 0, 
-            y = 0, 
+
+        var field_x = [],
+            field_y = [],
+            x = 0,
+            y = 0,
             len = pattern_string.length;
-        
+
         for(var i = 0; i < len; i++)
         {
             switch(pattern_string[i])
@@ -226,25 +229,25 @@ var formats = (function()
                 case ".":
                     x++;
                 break;
-                    
+
                 case "O":
                     field_x.push(x++)
                     field_y.push(y)
                 break;
-                    
+
                 case "\n":
                     y++;
                     x = 0;
                 break;
-                
+
                 case "\r":
                 case " ":
                 break;
-            
+
                 /*case "":
                     return result;
                 break;*/
-                    
+
                 default:
                     //console.log("Plaintext: Syntax Error");
                     return { error : "Plaintext: Syntax Error" };
@@ -253,14 +256,14 @@ var formats = (function()
 
         result.field_x = field_x;
         result.field_y = field_y;
-        
+
         return result;
     }
 
     function parse_comments(pattern_string, comment_char)
     {
         var result = { comment: "" },
-            nl, 
+            nl,
             line,
             cont,
             advanced = comment_char === "#";
@@ -280,7 +283,7 @@ var formats = (function()
                     case "N":
                         if(line)
                         {
-                            result.title = line;
+                            result.title = trim(line);
                         }
                         else
                         {
@@ -288,13 +291,15 @@ var formats = (function()
                         }
                         cont = false;
                         break;
-                        
+
                     case "C":
                     case "D":
-                    case "O":
-                        
                         break;
-                        
+
+                    case "O":
+                        result.author = trim(line);
+                        break;
+
                     case "R":
                         result.rule = line;
                         cont = false;
@@ -321,11 +326,11 @@ var formats = (function()
                 {
                     if(line.substr(0, 4) === "http")
                     {
-                        result.url = line;
+                        result.url = trim(line);
                     }
                     else
                     {
-                        result.url = "http://" + line;
+                        result.url = "http://" + trim(line);
                     }
                 }
                 else if(line.substr(0, 5) === "Name:")
@@ -335,26 +340,26 @@ var formats = (function()
                 else
                 {
                     result.comment += line;
-                    
+
                     if(nl !== 70 && nl !== 80)
                     {
                         result.comment += "\n";
                     }
                 }
             }
-            
+
             pattern_string = pattern_string.substr(nl + 1);
         }
 
         result.pattern_string = pattern_string;
-        
+
         return result;
     }
 
     function parse_pattern(pattern_text)
     {
         pattern_text = pattern_text.replace(/\r/g, "");
-        
+
         if(pattern_text[0] === "!")
         {
             return parse_plaintext(pattern_text);
@@ -381,7 +386,7 @@ var formats = (function()
     function rule2str(rule_s, rule_b)
     {
         var rule = "";
-        
+
         for(var i = 0; rule_s; rule_s >>= 1, i++)
         {
             if(rule_s & 1)
@@ -389,9 +394,9 @@ var formats = (function()
                 rule += i;
             }
         }
-        
+
         rule += "/";
-        
+
         for(var i = 0; rule_b; rule_b >>= 1, i++)
         {
             if(rule_b & 1)
@@ -399,7 +404,7 @@ var formats = (function()
                 rule += i;
             }
         }
-        
+
         return rule;
     }
 
@@ -427,9 +432,9 @@ var formats = (function()
 
     function parse_rule(rule_str, survived)
     {
-        var rule = 0, 
+        var rule = 0,
             parsed = rule_str.split("/")[survived ? 0 : 1];
-        
+
         for(var i = 0; i < parsed.length; i++)
         {
             var n = Number(parsed[i]);
@@ -438,11 +443,15 @@ var formats = (function()
             {
                 return false;
             }
-            
+
             rule |= 1 << n;
         }
 
         return rule;
     }
 
+    function trim(s)
+    {
+        return s.replace(/^\s+|\s+$/g, '');
+    }
 })();
