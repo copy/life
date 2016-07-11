@@ -75,12 +75,11 @@ function LifeCanvasDrawer()
             canvas_height = canvas.height = height;
 
             image_data = context.createImageData(width, height);
-            image_data_data = image_data.data;
+            image_data_data = new Int32Array(image_data.data.buffer);
 
-            for(var i = width * height * 4 - 1; i > 0; )
+            for(var i = 0; i < width * height; i++)
             {
-                image_data_data[i] = 0xFF;
-                i -= 4;
+                image_data_data[i] = 0xFF << 24;
             }
         }
     }
@@ -159,20 +158,19 @@ function LifeCanvasDrawer()
             return;
         }
         
-        var pointer = x + y * canvas_width << 2,
-            row_width = canvas_width - width << 2;
+        var pointer = x + y * canvas_width,
+            row_width = canvas_width - width;
 
         //console.assert(x >= 0 && y >= 0 && x + width <= canvas_width && y + height <= canvas_height);
+        var color = cell_color_rgb.r | cell_color_rgb.g << 8 | cell_color_rgb.b << 16 | 0xFF << 24;
 
         for(var i = 0; i < height; i++)
         {
             for(var j = 0; j < width; j++)
             {
-                image_data_data[pointer] = cell_color_rgb.r;
-                image_data_data[pointer + 1] = cell_color_rgb.g;
-                image_data_data[pointer + 2] = cell_color_rgb.b;
+                image_data_data[pointer] = color;
 
-                pointer += 4;
+                pointer++;
             }
             pointer += row_width;
         }
@@ -182,17 +180,16 @@ function LifeCanvasDrawer()
     function redraw(node)
     {
         var bg_color_rgb = color2rgb(drawer.background_color);
+        var bg_color_int = bg_color_rgb.r | bg_color_rgb.g << 8 | bg_color_rgb.b << 16 | 0xFF << 24;
 
         border_width = drawer.border_width * drawer.cell_width | 0;
         cell_color_rgb = color2rgb(drawer.cell_color);
 
-        var count = canvas_width * canvas_height * 4;
+        var count = canvas_width * canvas_height;
 
-        for(var i = 0; i < count; i += 4)
+        for(var i = 0; i < count; i++)
         {
-            image_data_data[i] = bg_color_rgb.r;
-            image_data_data[i + 1] = bg_color_rgb.g;
-            image_data_data[i + 2] = bg_color_rgb.b;
+            image_data_data[i] = bg_color_int;
         }
 
         var size = Math.pow(2, node.level - 1) * drawer.cell_width;
