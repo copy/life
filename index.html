@@ -6,7 +6,10 @@
 <meta name="description" content="A JavaScript version of Conway's Game of Life, based on the Hashlife-algorithm.">
 <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <link rel="stylesheet" href="life.css" type="text/css">
-<script async src="debug.js" type="text/javascript"></script>
+<script src="life.js"></script>
+<script src="formats.js"></script>
+<script src="draw.js"></script>
+<script src="main.js"></script>
 </head>
 <body>
 <div id="toolbar" style="display: none;">
@@ -65,7 +68,7 @@
     <div id="about">
         <h2>Conway's Game of Life in JavaScript</h2>
         <div id="notice">
-                <h3 style="color: orange">Sorry, this applications needs JavaScript to work.</h3>
+            <h3 style="color: orange">Sorry, this applications needs JavaScript to work.</h3>
             <center>
                 <img src="pattern.gif" alt="Bi Gun">
             </center>
@@ -74,8 +77,8 @@
         </div>
         This is an implementation of <a href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Conway's Game of Life</a> or
         more precisely, the super-fast <a href="https://en.wikipedia.org/wiki/Hashlife" target="_blank">Hashlife</a> algorithm,
-        written in JavaScript using the <code>canvas</code>-tag. It can simulate the largest known patterns, including the 
-        <a href="?pattern=caterpillar" id="caterpillar_link" title="Click to load" class="link">Caterpillar</a> (7.6MB, 11m cells) and 
+        written in JavaScript using the <code>canvas</code>-tag. It can simulate the largest known patterns, including the
+        <a href="?pattern=caterpillar" id="caterpillar_link" title="Click to load" class="link">Caterpillar</a> (7.6MB, 11m cells) and
         <a href="?pattern=gemini" id="gemini_link" title="Click to load" class="link">Gemini</a> (1.6MB, 846k cells).
         <br>
         <br>
@@ -92,7 +95,7 @@
         Mouse wheel         - Zoom
 
         Arrow keys, HJKL    - Move around
-        +, -                - Zoom 
+        +, -                - Zoom
         Space               - One generation forward
         Tab                 - Many generations forward
         Enter               - Run/Pause
@@ -109,7 +112,7 @@
     </div>
     <div id="import_dialog" style="display: none;">
         <h2>Import Pattern</h2>
-        Supports RLE, Life 1.06, Plaintext        
+        Supports RLE, Life 1.06, Plaintext
         <br>
         <br>
         <textarea id="import_text"></textarea>
@@ -136,11 +139,7 @@
     </div>
     <div id="pattern_chooser" style="display: none;">
         Source: <a href="http://www.conwaylife.com/wiki/Main_Page" target="_blank">www.conwaylife.com</a>. Thanks!
-        <br>
-        <br>
         <div id="pattern_list"></div>
-        <br>
-        <br>
         <span class="button2" id="pattern_close">Close</span>
     </div>
     <div id="settings_dialog" style="display: none;">
@@ -148,7 +147,7 @@
         <div class="left" id="select_rules">
             Rule<br>
             <small>
-                Or pick one: 
+                Or pick one:
                 <span class="link" data-rule="23/3">Conway</span>
                 <span class="link" data-rule="23/36">HighLife</span>
                 <span class="link" data-rule="125/36">2x2</span>
@@ -184,30 +183,11 @@
         <div class="right">
             <input type="number" min="0" max="0.5" step="0.05" id="border_width" style="width: 60px">
         </div>
-        <br class="clear">
+        <br>
+        <br>
         <br>
         <hr>
         <br>
-        Color formats are <b>#5FF</b> or <b>#55FFFF</b>.
-        <br class="clear">
-        <br>
-        <div class="left">
-            Cell color
-        </div>
-        <div class="right">
-            <input type="color" id="cell_color">
-        </div>
-        <br class="clear">
-        <br>
-        <div class="left">
-            Background color
-        </div>
-        <div class="right">
-            <input type="color" id="background_color">
-        </div>
-        <br class="clear">
-        <br>
-        <hr>
         <br>
         <span id="settings_submit" class="button2">Save</span>
         <span id="settings_reset" class="button2">Reset</span>
@@ -215,7 +195,7 @@
     </div>
     <div id="loading_popup" style="display: none; font-size: 16px">
         <center>
-            <h2>Downloading pattern file</h2> 
+            <h2>Downloading pattern file</h2>
             Please wait a second.<br><br>
             <img src="pattern.gif" alt="Bi Gun">
         </center>
