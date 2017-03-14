@@ -14,7 +14,6 @@
  * - restore meta life
  * - add .rle link
  * - fix gist link
- * - fps in url
  * - handle multiple urls in rle (http://copy.sh/life/?pattern=veryveryveryveryveryveryveryverylongboat)
  */
 
@@ -183,6 +182,11 @@ var
             {
                 $(elements[i]).style.display = "none";
             }
+        }
+
+        if(parameters["fps"] && /^\d+$/.test(parameters["fps"]))
+        {
+            max_fps = +parameters["fps"];
         }
 
         function try_load_meta()
