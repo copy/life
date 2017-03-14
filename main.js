@@ -7,7 +7,6 @@
  * - jump to coordinate
  * - make screenshots, maybe gifs
  * - allow people to upload patterns
- * - import patterns from file
  * - maybe more than 2 states (non-life)
  * - implement mcell import for huge patterns
  * - fail-safe http requests and pattern parsing
@@ -697,11 +696,30 @@ var
             $("import_submit").onclick = function()
             {
                 var previous = current_pattern && current_pattern.title;
+                var files = $("import_file").files;
 
-                setup_pattern($("import_text").value, false);
+                function load(text)
+                {
+                    setup_pattern(text, false);
 
-                if(previous !== current_pattern.title) {
-                    show_alert(current_pattern);
+                    if(previous !== current_pattern.title) {
+                        show_alert(current_pattern);
+                        $("import_file").value = "";
+                    }
+                }
+
+                if(files && files.length)
+                {
+                    let filereader = new FileReader();
+                    filereader.onload = function()
+                    {
+                        load(filereader.result);
+                    }
+                    filereader.readAsText(files[0]);
+                }
+                else
+                {
+                    load($("import_text").value);
                 }
             };
 

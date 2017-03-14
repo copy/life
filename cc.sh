@@ -9,7 +9,7 @@ ls -l $FILENAME
 
 java -jar ~/.local/closure-compiler.jar \
     --compilation_level ADVANCED_OPTIMIZATIONS\
-    --language_in ECMASCRIPT5_STRICT\
+    --language_in ECMASCRIPT6_STRICT\
     --js_output_file $FILENAME\
     --warning_level VERBOSE\
     --js draw.js life.js formats.js main.js
