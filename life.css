@@ -216,3 +216,7 @@ br.clear {
 #overlay h2 {
     margin-top: 0;
 }
+#pattern_file_container, #pattern_link_container, #pattern_urls {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

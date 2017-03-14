@@ -11,7 +11,6 @@
  * - implement mcell import for huge patterns
  * - fail-safe http requests and pattern parsing
  * - restore meta life
- * - fix gist link
  */
 
 "use strict";
@@ -40,7 +39,7 @@ var
 
         /**
          * which pattern file is currently loaded
-         * @type {{title: String, urls, comment, id, source_url}}
+         * @type {{title: String, urls, comment, view_url, source_url}}
          * */
         current_pattern,
 
@@ -128,8 +127,7 @@ var
         // or a random small pattern instead
         var query = location.search.substr(1).split("&"),
             param,
-            parameters = {},
-            pattern_parameter;
+            parameters = {};
 
         for(var i = 0; i < query.length; i++)
         {
@@ -145,9 +143,47 @@ var
             life.set_step(step_parameter);
         }
 
-        pattern_parameter = parameters["pattern"];
+        let pattern_parameter = parameters["pattern"];
+        let pattern_parameter_looks_good = pattern_parameter && /^[a-z0-9_\.]+$/.test(pattern_parameter);
 
-        if(pattern_parameter && /^[a-z0-9_\.]+$/.test(pattern_parameter))
+        let gist = parameters["gist"];
+        if(gist && /^[a-fA-F0-9]+$/.test(gist))
+        {
+            show_overlay("loading_popup");
+            let callback_name = "finish_load_gist" + (2147483647 * Math.random() | 0);
+            let jsonp_url = "https://api.github.com/gists/" + gist + "?callback=" + callback_name;
+
+            window[callback_name] = function(result)
+            {
+                let files = result["data"]["files"];
+
+                if(files)
+                {
+                    for(let filename of Object.keys(files))
+                    {
+                        let file = files[filename];
+                        let direct_url = file["raw_url"];
+                        let view_url = "https://copy.sh/life/?gist=" + gist;
+                        setup_pattern(file["content"], undefined, direct_url, view_url, filename);
+                    }
+                }
+                else
+                {
+                    if(pattern_parameter_looks_good)
+                    {
+                        try_load_pattern(pattern_parameter);
+                    }
+                    else
+                    {
+                        load_random();
+                    }
+                }
+            };
+            let script = document.createElement("script");
+            script.src = jsonp_url;
+            document.getElementsByTagName("head")[0].appendChild(script)
+        }
+        else if(pattern_parameter_looks_good)
         {
             if(parameters["meta"] === "1")
             {
@@ -158,7 +194,7 @@ var
                 // a pattern name has been given as a parameter
                 // try to load it, fallback to random pattern
 
-                try_load_pattern();
+                try_load_pattern(pattern_parameter);
             }
         }
         else
@@ -240,11 +276,11 @@ var
             */
         }
 
-        function try_load_pattern()
+        function try_load_pattern(id)
         {
             show_overlay("loading_popup");
             http_get(
-                rle_link(pattern_parameter),
+                rle_link(id),
                 function(text)
                 {
                     //console.profile("main setup");
@@ -943,12 +979,19 @@ var
 
     function rle_link(id)
     {
-        return location.protocol + "//" + location.host + location.pathname + pattern_path + id + ".rle";
+        if(location.hostname === "localhost")
+        {
+            return pattern_path + id + ".rle";
+        }
+        else
+        {
+            return location.protocol + "//copy.sh/life/" + pattern_path + id + ".rle";
+        }
     }
 
     function view_link(id)
     {
-        return "https://copy.sh/life/?pattern=" + id;
+        return location.protocol + "//copy.sh/life/?pattern=" + id;
     }
 
     /**
@@ -994,9 +1037,11 @@ var
 
 
     /**
-     * @param {String=} pattern_source_url
+     * @param {string=} pattern_source_url
+     * @param {string=} view_url
+     * @param {string=} title
      */
-    function setup_pattern(pattern_text, pattern_id, pattern_source_url)
+    function setup_pattern(pattern_text, pattern_id, pattern_source_url, view_url, title)
     {
         var result = formats.parse_pattern(pattern_text.trim());
 
@@ -1009,6 +1054,11 @@ var
         stop(function()
         {
             var bounds = life.get_bounds(result.field_x, result.field_y);
+
+            if(title && !result.title)
+            {
+                result.title = title;
+            }
 
             if(pattern_id && !result.title)
             {
@@ -1044,11 +1094,16 @@ var
                 pattern_source_url = rle_link(pattern_id);
             }
 
+            if(!view_url && pattern_id)
+            {
+                view_url = view_link(pattern_id);
+            }
+
             current_pattern = {
                 title : result.title,
                 comment : result.comment,
                 urls : result.urls,
-                id : pattern_id,
+                view_url : view_url,
                 source_url: pattern_source_url,
             };
         });
@@ -1184,12 +1239,11 @@ var
                 $("pattern_urls").appendChild(document.createElement("br"));
             }
 
-            if(pattern.id)
+            if(pattern.view_url)
             {
-                let full_link = view_link(pattern.id);
                 show_element($("pattern_link_container"));
-                set_text($("pattern_link"), full_link);
-                $("pattern_link").href = full_link;
+                set_text($("pattern_link"), pattern.view_url);
+                $("pattern_link").href = pattern.view_url;
             }
             else
             {
