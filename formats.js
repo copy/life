@@ -262,7 +262,10 @@ var formats = (function()
 
     function parse_comments(pattern_string, comment_char)
     {
-        var result = { comment: "" },
+        var result = {
+                comment: "",
+                urls: [],
+            },
             nl,
             line,
             cont,
@@ -324,14 +327,14 @@ var formats = (function()
             {
                 if(/^(?:http:\/\/|www\.)[a-z0-9]/i.test(line))
                 {
-                    if(line.substr(0, 4) === "http")
+                    line = trim(line);
+
+                    if(line.substr(0, 4) !== "http")
                     {
-                        result.url = trim(line);
+                        line = "http://" + line;
                     }
-                    else
-                    {
-                        result.url = "http://" + trim(line);
-                    }
+
+                    result.urls.push(line);
                 }
                 else if(line.substr(0, 5) === "Name:")
                 {

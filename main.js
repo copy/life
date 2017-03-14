@@ -13,7 +13,6 @@
  * - restore meta life
  * - add .rle link
  * - fix gist link
- * - handle multiple urls in rle (http://copy.sh/life/?pattern=veryveryveryveryveryveryveryverylongboat)
  */
 
 "use strict";
@@ -42,7 +41,7 @@ var
 
         /**
          * which pattern file is currently loaded
-         * @type {{title: String, url, comment, link}}
+         * @type {{title: String, urls, comment, link}}
          * */
         current_pattern,
 
@@ -1028,7 +1027,7 @@ var
             current_pattern = {
                 title : result.title,
                 comment : result.comment,
-                url : result.url,
+                urls : result.urls,
                 link : pattern_link
             };
         });
@@ -1146,14 +1145,22 @@ var
 
     function show_alert(pattern)
     {
-        if(pattern.title || pattern.comment || pattern.url)
+        if(pattern.title || pattern.comment || pattern.urls.length)
         {
             show_overlay("alert");
 
             set_text($("pattern_title"), pattern.title || "");
             set_text($("pattern_description"), pattern.comment || "");
-            set_text($("pattern_url"), pattern.url || "");
-            $("pattern_url").href = pattern.url;
+
+            $("pattern_urls").innerHTML = "";
+            for(let url of pattern.urls)
+            {
+                let a = document.createElement("a");
+                a.href = url;
+                a.textContent = url;
+                $("pattern_urls").appendChild(a);
+                $("pattern_urls").appendChild(document.createElement("br"));
+            }
 
             if(pattern.link)
             {
