@@ -88,6 +88,7 @@ html {
     -webkit-user-select: none;
     -moz-user-select: none;
 }
+/*
 .menu {
     overflow: hidden;
     height: 20px;
@@ -96,6 +97,7 @@ html {
     height: auto;
     padding-bottom: 50px;
 }
+*/
 #overlay {
     background-color: #000;
     position: absolute;
