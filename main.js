@@ -745,8 +745,8 @@ var
                     drawer.border_width = DEFAULT_BORDER;
                 }
 
-                drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
-                drawer.background_color = validate_color($("background_color").value) || "#000";
+                //drawer.cell_color = validate_color($("cell_color").value) || "#ccc";
+                //drawer.background_color = validate_color($("background_color").value) || "#000";
                 var style_text = document.createTextNode(
                     ".button,.menu>div{background-color:" + drawer.cell_color +
                     ";box-shadow:2px 2px 4px " + drawer.cell_color + "}" +
@@ -782,8 +782,8 @@ var
                 $("gen_step").value = Math.pow(2, life.step);
 
                 $("border_width").value = drawer.border_width;
-                $("cell_color").value = drawer.cell_color;
-                $("background_color").value = drawer.background_color;
+                //$("cell_color").value = drawer.cell_color;
+                //$("background_color").value = drawer.background_color;
             };
 
             $("settings_abort").onclick = 
