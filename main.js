@@ -181,54 +181,6 @@ var
             }
         }
 
-
-        /*for(var i = 10; i < 100; i++)
-            for(var j = 10; j < 100; j++)
-                life.set_bit(i + 200, j + 200, Math.random() > .5); /**/
-
-
-        // debug setup
-        // loads big pattern
-        
-        
-        /*
-        http_get("examples/vgun.rle", function(text)
-        //http_get("examples/p59glidergunoriginal.rle", function(text)
-        //http_get("examples/stackconstructor_diag.rle", function(text)
-        //http_get("examples/otcametapixeloff.rle", function(text)
-        {
-            //return;
-            var t = Date.now();
-            setup_pattern(text, false);
-
-            console.log("full load", Date.now() - t);
-            //console.log("kollisionen: " + e);
-            //console.log("# of nodes: " + last_id);
-            //console.log("hashmap.length: " + Object.keys(hashmap).length);
-
-            var a = 1;
-            t = Date.now();
-            //console.log(root.level)
-            while(a--) {
-                drawer.redraw(life.root);
-            }
-            console.log("redraw", Date.now() - t);
-
-            window.e = 0;
-            a = 100;
-            t = Date.now();
-            while(a--) {
-                life.next_generation(true);
-            }
-            console.log("next generation", Date.now() - t)
-
-
-            console.log("kollisionen: " + window.e);
-            //console.log("# of nodes: " + last_id)
-
-        });
-        /* */
-
         function try_load_meta()
         {
             // loading metapixels is broken now, keep this for later
