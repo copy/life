@@ -1,6 +1,6 @@
 "use strict";
 
-var 
+var
     /** @const */
     LOAD_FACTOR = .9,
     /** @const */
@@ -26,7 +26,7 @@ function LifeUniverse()
     /** @type {number} */
     this.last_id = 0;
 
-    // Size of the hashmap. 
+    // Size of the hashmap.
     // Always a power of 2 minus 1
     this.hashmap_size = 0;
 
@@ -54,7 +54,7 @@ function LifeUniverse()
 
     for(var i = 0x10; i < 0x758; i++)
     {
-        this._bitcounts[i] = this._bitcounts[i & 0xF] + 
+        this._bitcounts[i] = this._bitcounts[i & 0xF] +
                                 this._bitcounts[i >> 4 & 0xF] +
                                 this._bitcounts[i >> 8];
     }
@@ -70,7 +70,7 @@ function LifeUniverse()
 
     this.rewind_state = null;
 
-    /** 
+    /**
      * number of generations to calculate at one time,
      * written as 2^n
      * @type {number}
@@ -121,7 +121,7 @@ LifeUniverse.prototype.restore_rewind_state = function()
 LifeUniverse.prototype.eval_mask = function(bitmask)
 {
     var rule = (bitmask & 32) ? this.rule_s : this.rule_b;
-    
+
     return rule >> this._bitcounts[bitmask & 0x757] & 1;
 };
 
@@ -153,7 +153,7 @@ LifeUniverse.prototype.set_bit = function(x, y, living)
             return;
         }
     }
-    
+
     this.root = this.node_set_bit(this.root, x, y, living);
 };
 
@@ -193,21 +193,21 @@ LifeUniverse.prototype.empty_tree = function(level)
     }
 
     var t;
-    
+
     if(level === 1) {
         t = this.false_leaf;
     }
     else {
         t = this.empty_tree(level - 1);
     }
-        
+
     return this.empty_tree_cache[level] = this.create_tree(t, t, t, t);
 };
 
 LifeUniverse.prototype.expand_universe = function(node)
 {
     var t = this.empty_tree(node.level - 1);
-    
+
     return this.create_tree(
         this.create_tree(t, t, t, node.nw),
         this.create_tree(t, t, node.ne, t),
@@ -216,7 +216,7 @@ LifeUniverse.prototype.expand_universe = function(node)
     );
 };
 
-// Preserve the tree, but remove all cached 
+// Preserve the tree, but remove all cached
 // generations forward
 LifeUniverse.prototype.uncache = function(also_quick)
 {
@@ -323,7 +323,7 @@ LifeUniverse.prototype.create_tree = function(nw, ne, sw, se)
         {
             return node;
         }
-        //console.log("collision hash=" + hash + 
+        //console.log("collision hash=" + hash +
         //        " (" + node.nw.id + "," + node.ne.id + "," + node.sw.id + "," + node.se.id + ")" +
         //        " (" + nw.id + "," + ne.id + "," + sw.id + "," + se.id + ")");
 
@@ -406,7 +406,7 @@ LifeUniverse.prototype.calc_hash = function(nw_id, ne_id, sw_id, se_id)
     //nw_id = sw_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
     //nw_id = se_id + (nw_id << 6) + (nw_id << 16) - nw_id | 0;
     //return nw_id | 0;
-    
+
     var hash = ((nw_id * 23 ^ ne_id) * 23 ^ sw_id) * 23 ^ se_id;
     return hash;
 };
@@ -440,18 +440,18 @@ LifeUniverse.prototype.get_bounds = function(field_x, field_y)
     }
 
     var bounds = {
-            top : field_y[0], 
-            left : field_x[0], 
-            bottom : field_y[0], 
+            top : field_y[0],
+            left : field_x[0],
+            bottom : field_y[0],
             right : field_x[0]
         },
         len = field_x.length;
-    
+
     for(var i = 1; i < len; i++)
     {
         var x = field_x[i],
             y = field_y[i];
-        
+
         if(x < bounds.left)
         {
             bounds.left = x;
@@ -460,7 +460,7 @@ LifeUniverse.prototype.get_bounds = function(field_x, field_y)
         {
             bounds.right = x;
         }
-        
+
         if(y < bounds.top)
         {
             bounds.top = y;
@@ -470,7 +470,7 @@ LifeUniverse.prototype.get_bounds = function(field_x, field_y)
             bounds.bottom = y;
         }
     }
-    
+
     return bounds;
 };
 
@@ -495,7 +495,7 @@ LifeUniverse.prototype.get_level_from_bounds = function(bounds)
             max = -coordinate;
         }
     }
-    
+
     return Math.ceil(Math.log(max) / Math.LN2) + 1;
 }
 
@@ -624,7 +624,7 @@ LifeUniverse.prototype.setup_field = function(field_x, field_y, bounds)
 
     //console.log(field_x, field_y);
     this.move_field(field_x, field_y, offset, offset);
-    
+
     //console.time("setup");
 
     //console.time("setup");
@@ -696,7 +696,7 @@ LifeUniverse.prototype.setup_field_recurse = function(start, end, field_x, field
         //   [Part3, part4] -> sw
         //   [Part4, end  ] -> se
         //
-        // First we split [start, end] into north and south by partitioning 
+        // First we split [start, end] into north and south by partitioning
         // by the y coordinates. Next we split the two halfes by the x coordinate.
         part3 = this.partition(start, end,       field_y, field_x, offset),
         part2 = this.partition(start, part3 - 1, field_x, field_y, offset),
@@ -714,7 +714,7 @@ LifeUniverse.prototype.setup_field_recurse = function(start, end, field_x, field
 LifeUniverse.prototype.level2_setup = function(start, end, field_x, field_y)
 {
     var set = 0,
-        x, 
+        x,
         y;
 
     for(var i = start; i <= end; i++)
@@ -781,7 +781,7 @@ LifeUniverse.prototype.setup_meta = function(otca_on, otca_off, field, bounds)
 //
 //    this.node_get_field(node, -offset, -offset, field);
 //    //node.get_field(-offset, -offset, field);
-//    
+//
 //    return field;
 //};
 
@@ -827,7 +827,7 @@ LifeUniverse.prototype.TreeNode = function(nw, ne, sw, se, id)
     this.se = se;
 
     this.id = id;
-    
+
     // 2^level = width/height of area
     this.level = nw.level + 1;
 
@@ -860,7 +860,7 @@ LifeUniverse.prototype.node_set_bit = function(node, x, y, living)
         ne = node.ne,
         sw = node.sw,
         se = node.se;
-    
+
     if(x < 0)
     {
         if(y < 0)
@@ -900,7 +900,7 @@ LifeUniverse.prototype.node_get_bit = function(node, x, y)
     }
 
     var offset = node.level === 1 ? 0 : this.pow2(node.level - 2);
-    
+
     if(x < 0)
     {
         if (y < 0)
@@ -953,7 +953,7 @@ LifeUniverse.prototype.node_level2_next = function(node)
         ne = node.ne,
         sw = node.sw,
         se = node.se,
-        bitmask = 
+        bitmask =
             nw.nw.population << 15 | nw.ne.population << 14 | ne.nw.population << 13 | ne.ne.population << 12 |
             nw.sw.population << 11 | nw.se.population << 10 | ne.sw.population <<  9 | ne.se.population <<  8 |
             sw.nw.population <<  7 | sw.ne.population <<  6 | se.nw.population <<  5 | se.ne.population <<  4 |
@@ -961,9 +961,9 @@ LifeUniverse.prototype.node_level2_next = function(node)
 
 
     return this.level1_create(
-        this.eval_mask(bitmask >> 5) | 
-        this.eval_mask(bitmask >> 4) << 1 | 
-        this.eval_mask(bitmask >> 1) << 2 | 
+        this.eval_mask(bitmask >> 5) |
+        this.eval_mask(bitmask >> 4) << 1 |
+        this.eval_mask(bitmask >> 1) << 2 |
         this.eval_mask(bitmask) << 3
     );
 
@@ -980,7 +980,7 @@ LifeUniverse.prototype.node_next_generation = function(node)
     {
         return this.node_quick_next_generation(node);
     }
-    
+
     if(node.level === 2)
     {
         if(node.quick_cache)
@@ -992,19 +992,19 @@ LifeUniverse.prototype.node_next_generation = function(node)
             return node.quick_cache = this.node_level2_next(node);
         }
     }
-    
+
     var nw = node.nw,
         ne = node.ne,
         sw = node.sw,
         se = node.se,
-        n00 = this.create_tree(nw.nw.se, nw.ne.sw, nw.sw.ne, nw.se.nw), 
-        n01 = this.create_tree(nw.ne.se, ne.nw.sw, nw.se.ne, ne.sw.nw), 
-        n02 = this.create_tree(ne.nw.se, ne.ne.sw, ne.sw.ne, ne.se.nw), 
-        n10 = this.create_tree(nw.sw.se, nw.se.sw, sw.nw.ne, sw.ne.nw), 
-        n11 = this.create_tree(nw.se.se, ne.sw.sw, sw.ne.ne, se.nw.nw), 
-        n12 = this.create_tree(ne.sw.se, ne.se.sw, se.nw.ne, se.ne.nw), 
-        n20 = this.create_tree(sw.nw.se, sw.ne.sw, sw.sw.ne, sw.se.nw), 
-        n21 = this.create_tree(sw.ne.se, se.nw.sw, sw.se.ne, se.sw.nw), 
+        n00 = this.create_tree(nw.nw.se, nw.ne.sw, nw.sw.ne, nw.se.nw),
+        n01 = this.create_tree(nw.ne.se, ne.nw.sw, nw.se.ne, ne.sw.nw),
+        n02 = this.create_tree(ne.nw.se, ne.ne.sw, ne.sw.ne, ne.se.nw),
+        n10 = this.create_tree(nw.sw.se, nw.se.sw, sw.nw.ne, sw.ne.nw),
+        n11 = this.create_tree(nw.se.se, ne.sw.sw, sw.ne.ne, se.nw.nw),
+        n12 = this.create_tree(ne.sw.se, ne.se.sw, se.nw.ne, se.ne.nw),
+        n20 = this.create_tree(sw.nw.se, sw.ne.sw, sw.sw.ne, sw.se.nw),
+        n21 = this.create_tree(sw.ne.se, se.nw.sw, sw.se.ne, se.sw.nw),
         n22 = this.create_tree(se.nw.se, se.ne.sw, se.sw.ne, se.se.nw);
 
     return node.cache = this.create_tree(
@@ -1024,7 +1024,7 @@ LifeUniverse.prototype.node_quick_next_generation = function(node)
 
     if(node.level === 2)
     {
-        return node.quick_cache = this.node_level2_next(node); 
+        return node.quick_cache = this.node_level2_next(node);
     }
 
     var nw = node.nw,
@@ -1041,7 +1041,7 @@ LifeUniverse.prototype.node_quick_next_generation = function(node)
         n21 = this.node_quick_next_generation(this.create_tree(sw.ne, se.nw, sw.se, se.sw)),
         n22 = this.node_quick_next_generation(se);
 
-    
+
     return node.quick_cache = this.create_tree(
         this.node_quick_next_generation(this.create_tree(n00, n01, n10, n11)),
         this.node_quick_next_generation(this.create_tree(n01, n02, n11, n12)),
@@ -1067,7 +1067,7 @@ LifeUniverse.prototype.node_hash = function(node)
             this.node_hash(node.ne);
             this.node_hash(node.sw);
             this.node_hash(node.se);
-            
+
             if(node.cache) {
                 this.node_hash(node.cache);
             }

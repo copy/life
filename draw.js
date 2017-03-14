@@ -59,7 +59,7 @@ function LifeCanvasDrawer()
         }
 
         drawer.canvas = canvas;
-        
+
         context = canvas.getContext("2d");
 
         dom_parent.appendChild(canvas);
@@ -90,8 +90,8 @@ function LifeCanvasDrawer()
         {
             return;
         }
-        
-        if( 
+
+        if(
             left + size + canvas_offset_x < 0 ||
             top + size + canvas_offset_y < 0 ||
             left + canvas_offset_x >= canvas_width ||
@@ -157,7 +157,7 @@ function LifeCanvasDrawer()
         {
             return;
         }
-        
+
         var pointer = x + y * canvas_width,
             row_width = canvas_width - width;
 
@@ -193,15 +193,15 @@ function LifeCanvasDrawer()
         }
 
         var size = Math.pow(2, node.level - 1) * drawer.cell_width;
-        
+
         draw_node(node, 2 * size, -size, -size);
 
         context.putImageData(image_data, 0, 0);
     }
 
-    /** 
+    /**
      * @param {number} center_x
-     * @param {number} center_y 
+     * @param {number} center_y
      */
     function zoom(out, center_x, center_y)
     {
@@ -209,14 +209,14 @@ function LifeCanvasDrawer()
         {
             canvas_offset_x -= Math.round((canvas_offset_x - center_x) / 2);
             canvas_offset_y -= Math.round((canvas_offset_y - center_y) / 2);
-            
+
             drawer.cell_width /= 2;
         }
         else
         {
             canvas_offset_x += Math.round(canvas_offset_x - center_x);
             canvas_offset_y += Math.round(canvas_offset_y - center_y);
-            
+
             drawer.cell_width *= 2;
         }
     }
@@ -282,13 +282,13 @@ function LifeCanvasDrawer()
         var width = bounds.right - bounds.left,
             height = bounds.bottom - bounds.top,
             relative_size,
-            x, 
+            x,
             y;
 
         if(isFinite(width) && isFinite(height))
         {
             relative_size = Math.min(
-                16, // maximum cell size 
+                16, // maximum cell size
                 canvas_width / width, // relative width
                 canvas_height / height // relative height
             );
@@ -314,7 +314,7 @@ function LifeCanvasDrawer()
     {
         var cell_x = x * drawer.cell_width + canvas_offset_x,
             cell_y = y * drawer.cell_width + canvas_offset_y,
-            width = Math.ceil(drawer.cell_width) - 
+            width = Math.ceil(drawer.cell_width) -
                 (drawer.cell_width * drawer.border_width | 0);
 
         if(set) {
@@ -323,7 +323,7 @@ function LifeCanvasDrawer()
         else {
             context.fillStyle = drawer.background_color;
         }
-        
+
         context.fillRect(cell_x, cell_y, width, width);
     }
 
