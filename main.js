@@ -817,44 +817,71 @@ var
 
                 patterns_loaded = true;
 
-                show_overlay("loading_popup");
-                http_get(pattern_path + "list", function(text) 
+                if(false)
                 {
-                    var patterns = text.split("\n"),
-                        list = $("pattern_list");
+                    var frame = document.createElement("iframe");
+                    frame.src = "examples/";
+                    frame.id = "example_frame";
+                    $("pattern_list").appendChild(frame);
 
                     show_overlay("pattern_chooser");
 
-                    patterns.forEach(function(pattern)
+                    window["load_pattern"] = function(id)
                     {
-                        var 
-                            name = pattern.split(" ")[0],
-                            size = pattern.split(" ")[1],
-                            name_element = document.createElement("div"),
-                            size_element = document.createElement("span");
-
-                        set_text(name_element, name);
-                        set_text(size_element, size);
-                        size_element.className = "size";
-
-                        name_element.appendChild(size_element);
-                        list.appendChild(name_element);
-
-                        name_element.onclick = function()
+                        show_overlay("loading_popup");
+                        http_get(pattern_path + id + ".rle", function(text)
                         {
-                            show_overlay("loading_popup");
-                            http_get(pattern_path + name + ".rle", function(text)
+                            setup_pattern(text, id);
+                            set_query(id);
+                            show_alert(current_pattern);
+                            life.set_step(0);
+                            set_text($("label_step"), "1");
+                        });
+                    }
+                }
+                else
+                {
+                    patterns_loaded = true;
+
+                    show_overlay("loading_popup");
+                    http_get(pattern_path + "list", function(text)
+                    {
+                        var patterns = text.split("\n"),
+                            list = $("pattern_list");
+
+                        show_overlay("pattern_chooser");
+
+                        patterns.forEach(function(pattern)
+                        {
+                            var
+                                name = pattern.split(" ")[0],
+                                size = pattern.split(" ")[1],
+                                name_element = document.createElement("div"),
+                                size_element = document.createElement("span");
+
+                            set_text(name_element, name);
+                            set_text(size_element, size);
+                            size_element.className = "size";
+
+                            name_element.appendChild(size_element);
+                            list.appendChild(name_element);
+
+                            name_element.onclick = function()
                             {
-                                setup_pattern(text, name);
-                                set_query(name);
-                                show_alert(current_pattern);
-                                
-                                life.set_step(0);
-                                set_text($("label_step"), "1");
-                            });
-                        }
+                                show_overlay("loading_popup");
+                                http_get(pattern_path + name + ".rle", function(text)
+                                {
+                                    setup_pattern(text, name);
+                                    set_query(name);
+                                    show_alert(current_pattern);
+
+                                    life.set_step(0);
+                                    set_text($("label_step"), "1");
+                                });
+                            }
+                        });
                     });
-                });
+                }
             };
 
             var examples_menu = $("examples_menu");
