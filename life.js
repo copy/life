@@ -337,7 +337,7 @@ LifeUniverse.prototype.next_generation = function(is_single)
     var root = this.root;
 
     while(
-        (is_single && this.step > root.level - 2) || 
+        (is_single && root.level <= this.step + 2) ||
         root.nw.population !== root.nw.se.se.population ||
         root.ne.population !== root.ne.sw.sw.population ||
         root.sw.population !== root.sw.ne.ne.population ||
