@@ -11,7 +11,6 @@
  * - implement mcell import for huge patterns
  * - fail-safe http requests and pattern parsing
  * - restore meta life
- * - add .rle link
  * - fix gist link
  */
 
@@ -41,7 +40,7 @@ var
 
         /**
          * which pattern file is currently loaded
-         * @type {{title: String, urls, comment, link}}
+         * @type {{title: String, urls, comment, id, source_url}}
          * */
         current_pattern,
 
@@ -245,7 +244,7 @@ var
         {
             show_overlay("loading_popup");
             http_get(
-                pattern_path + pattern_parameter + ".rle",
+                rle_link(pattern_parameter),
                 function(text)
                 {
                     //console.profile("main setup");
@@ -265,7 +264,7 @@ var
 
             show_overlay("loading_popup");
             http_get(
-                pattern_path + random_pattern + ".rle",
+                rle_link(random_pattern),
                 function(text) {
                     setup_pattern(text, random_pattern);
                 }
@@ -699,7 +698,7 @@ var
 
                 function load(text)
                 {
-                    setup_pattern(text, false);
+                    setup_pattern(text, undefined);
 
                     if(previous !== current_pattern.title) {
                         show_alert(current_pattern);
@@ -854,7 +853,7 @@ var
                     window["load_pattern"] = function(id)
                     {
                         show_overlay("loading_popup");
-                        http_get(pattern_path + id + ".rle", function(text)
+                        http_get(rle_link(id), function(text)
                         {
                             setup_pattern(text, id);
                             set_query(id);
@@ -894,7 +893,7 @@ var
                             name_element.onclick = function()
                             {
                                 show_overlay("loading_popup");
-                                http_get(pattern_path + name + ".rle", function(text)
+                                http_get(rle_link(name), function(text)
                                 {
                                     setup_pattern(text, name);
                                     set_query(name);
@@ -925,7 +924,7 @@ var
                     menu.onclick = function()
                     {
                         show_overlay("loading_popup");
-                        http_get(pattern_path + file + ".rle", function(text)
+                        http_get(rle_link(file), function(text)
                         {
                             setup_pattern(text, file);
                             set_query(file);
@@ -941,6 +940,16 @@ var
 
     document.addEventListener("DOMContentLoaded", window.onload, false);
 
+
+    function rle_link(id)
+    {
+        return location.protocol + "//" + location.host + location.pathname + pattern_path + id + ".rle";
+    }
+
+    function view_link(id)
+    {
+        return "https://copy.sh/life/?pattern=" + id;
+    }
 
     /**
      * @param {function()=} callback
@@ -984,7 +993,10 @@ var
     }
 
 
-    function setup_pattern(pattern_text, pattern_link)
+    /**
+     * @param {String=} pattern_source_url
+     */
+    function setup_pattern(pattern_text, pattern_id, pattern_source_url)
     {
         var result = formats.parse_pattern(pattern_text.trim());
 
@@ -998,9 +1010,9 @@ var
         {
             var bounds = life.get_bounds(result.field_x, result.field_y);
 
-            if(pattern_link && !result.title)
+            if(pattern_id && !result.title)
             {
-                result.title = pattern_link;
+                result.title = pattern_id;
             }
 
             life.clear_pattern();
@@ -1027,11 +1039,17 @@ var
             set_text($("pattern_name"), result.title || "no name");
             set_title(result.title);
 
+            if(!pattern_source_url && pattern_id)
+            {
+                pattern_source_url = rle_link(pattern_id);
+            }
+
             current_pattern = {
                 title : result.title,
                 comment : result.comment,
                 urls : result.urls,
-                link : pattern_link
+                id : pattern_id,
+                source_url: pattern_source_url,
             };
         });
     }
@@ -1161,19 +1179,32 @@ var
                 let a = document.createElement("a");
                 a.href = url;
                 a.textContent = url;
+                a.target = "_blank";
                 $("pattern_urls").appendChild(a);
                 $("pattern_urls").appendChild(document.createElement("br"));
             }
 
-            if(pattern.link)
+            if(pattern.id)
             {
-                show_element($("pattern_link"));
-                //set_text($("pattern_link"), "http://copy.sh/life/?pattern=" + pattern.link);
-                $("pattern_link").value = "http://copy.sh/life/?pattern=" + pattern.link;
+                let full_link = view_link(pattern.id);
+                show_element($("pattern_link_container"));
+                set_text($("pattern_link"), full_link);
+                $("pattern_link").href = full_link;
             }
             else
             {
-                hide_element($("pattern_link"));
+                hide_element($("pattern_link_container"));
+            }
+
+            if(pattern.source_url)
+            {
+                show_element($("pattern_file_container"));
+                set_text($("pattern_file_link"), pattern.source_url);
+                $("pattern_file_link").href = pattern.source_url;
+            }
+            else
+            {
+                hide_element($("pattern_file_container"));
             }
         }
     }

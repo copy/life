@@ -183,15 +183,6 @@ a:hover, .link:hover {
 canvas {
     position: absolute;
 }
-#pattern_link {
-    background-color: #333;
-    color: #fff;
-    padding: 4px 10px;
-    font-family: monospace;
-    width: 80%;
-    text-align: left;
-    border: 0px none;
-}
 #pattern_chooser > div {
     height: 500px;
 }
