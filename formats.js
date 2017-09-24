@@ -70,9 +70,12 @@ var formats = (function()
                     result.rule = rule2str(result.rule_s, result.rule_b);
                     break;
 
+                case "alpha":
+                    break;
+
                 default:
                     //console.log(header_match);
-                    return { error : "RLE Syntax Error: Invalid Header" };
+                    return { error : "RLE Syntax Error: Invalid Header: " + header_match[1] };
             }
         }
         /*
@@ -231,8 +234,8 @@ var formats = (function()
                 break;
 
                 case "O":
-                    field_x.push(x++)
-                    field_y.push(y)
+                    field_x.push(x++);
+                    field_y.push(y);
                 break;
 
                 case "\n":
@@ -265,6 +268,7 @@ var formats = (function()
         var result = {
                 comment: "",
                 urls: [],
+                short_comment: "",
             },
             nl,
             line,
@@ -297,6 +301,10 @@ var formats = (function()
 
                     case "C":
                     case "D":
+                        if(!result.short_comment)
+                        {
+                            result.short_comment = trim(line);
+                        }
                         break;
 
                     case "O":
@@ -382,7 +390,7 @@ var formats = (function()
         }
         else
         {
-            return { error: "Format detection failed." }
+            return { error: "Format detection failed." };
         }
     }
 

@@ -11,6 +11,9 @@
  * - implement mcell import for huge patterns
  * - fail-safe http requests and pattern parsing
  * - restore meta life
+ * - error when zooming while pattern is loading
+ * - run http://copy.sh/life/?pattern=demonoid_synth without crashing (improve memory efficiency)
+ * - some patterns break randomly (hard to reproduce, probably related to speed changing)
  */
 
 "use strict";
@@ -26,7 +29,8 @@ var
 (function()
 {
     //var console = console || { log : function() {} };
-    var initialTitle = document.title;
+    var initial_title = document.title;
+    var initial_description = "";
 
     if(!document.addEventListener)
     {
@@ -105,6 +109,8 @@ var
 
         loaded = true;
 
+        initial_description = document.querySelector("meta[name=description]").content;
+
         if(!drawer.init(document.body))
         {
             set_text($("notice").getElementsByTagName("h4")[0],
@@ -144,7 +150,7 @@ var
         }
 
         let pattern_parameter = parameters["pattern"];
-        let pattern_parameter_looks_good = pattern_parameter && /^[a-z0-9_\.]+$/.test(pattern_parameter);
+        let pattern_parameter_looks_good = pattern_parameter && /^[a-z0-9_\.\-]+$/.test(pattern_parameter);
 
         let gist = parameters["gist"];
         if(gist && /^[a-fA-F0-9]+$/.test(gist))
@@ -1089,6 +1095,9 @@ var
             set_text($("pattern_name"), result.title || "no name");
             set_title(result.title);
 
+            document.querySelector("meta[name=description]").content =
+                result.comment.replace(/\n/g, " - ") + " - " + initial_description;
+
             if(!pattern_source_url && pattern_id)
             {
                 pattern_source_url = rle_link(pattern_id);
@@ -1500,11 +1509,11 @@ var
     {
         if(title)
         {
-            document.title = title + " - " + initialTitle;
+            document.title = title + " - " + initial_title;
         }
         else
         {
-            document.title = initialTitle;
+            document.title = initial_title;
         }
     }
 
