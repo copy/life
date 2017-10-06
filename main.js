@@ -3,7 +3,7 @@
  * - export patterns
  * - remember settings in the hash or offer link
  * - life 1.05 is currently broken
- * - better mobile handling: allow scrolling, run with less fps
+ * - better mobile handling: allow drawing
  * - jump to coordinate
  * - make screenshots, maybe gifs
  * - allow people to upload patterns
@@ -187,7 +187,7 @@ var
             };
             let script = document.createElement("script");
             script.src = jsonp_url;
-            document.getElementsByTagName("head")[0].appendChild(script)
+            document.getElementsByTagName("head")[0].appendChild(script);
         }
         else if(pattern_parameter_looks_good)
         {
@@ -418,16 +418,15 @@ var
                         update_hud();
                     });
                 }
-            }
-
-            drawer.canvas.ondblclick = function(e)
-            {
-                drawer.zoom(false, e.clientX, e.clientY);
-
-                update_hud();
-                lazy_redraw(life.root);
-                return false;
             };
+
+            //drawer.canvas.ondblclick = function(e)
+            //{
+            //    drawer.zoom(false, e.clientX, e.clientY);
+            //    update_hud();
+            //    lazy_redraw(life.root);
+            //    return false;
+            //};
 
 
             drawer.canvas.onmousedown = function(e)
@@ -463,42 +462,85 @@ var
                 return false;
             };
 
+            var scaling = false;
+            var last_distance = 0;
+
+            function distance(touches)
+            {
+                console.assert(touches.length >= 2);
+
+                return Math.sqrt(
+                    (touches[0].clientX-touches[1].clientX) * (touches[0].clientX-touches[1].clientX) +
+                    (touches[0].clientY-touches[1].clientY) * (touches[0].clientY-touches[1].clientY));
+            }
+
             drawer.canvas.addEventListener("touchstart", function(e)
             {
-                // left mouse simulation
-                var ev = {
-                    which: 1,
-                    clientX: e.changedTouches[0].clientX,
-                    clientY: e.changedTouches[0].clientY,
-                };
+                if(e.touches.length === 2)
+                {
+                    scaling = true;
+                    last_distance = distance(e.touches);
+                    e.preventDefault();
+                }
+                else if(e.touches.length === 1)
+                {
+                    // left mouse simulation
+                    var ev = {
+                        which: 1,
+                        clientX: e.changedTouches[0].clientX,
+                        clientY: e.changedTouches[0].clientY,
+                    };
 
-                drawer.canvas.onmousedown(ev);
+                    drawer.canvas.onmousedown(ev);
 
-                e.preventDefault();
+                    e.preventDefault();
+                }
             }, false);
 
             drawer.canvas.addEventListener("touchmove", function(e)
             {
-                var ev = {
-                    clientX: e.changedTouches[0].clientX,
-                    clientY: e.changedTouches[0].clientY,
-                };
+                if(scaling)
+                {
+                    let new_distance = distance(e.touches);
+                    const MIN_DISTANCE = 50;
 
-                do_field_move(ev);
+                    while(last_distance - new_distance > MIN_DISTANCE)
+                    {
+                        last_distance -= MIN_DISTANCE;
+                        drawer.zoom_centered(true);
+                    }
 
-                e.preventDefault();
+                    while(last_distance - new_distance < -MIN_DISTANCE)
+                    {
+                        last_distance += MIN_DISTANCE;
+                        drawer.zoom_centered(false);
+                    }
+                }
+                else
+                {
+                    var ev = {
+                        clientX: e.changedTouches[0].clientX,
+                        clientY: e.changedTouches[0].clientY,
+                    };
+
+                    do_field_move(ev);
+
+                    e.preventDefault();
+                }
             }, false);
 
             drawer.canvas.addEventListener("touchend", function(e)
             {
                 window.onmouseup(e);
                 e.preventDefault();
+                scaling = false;
             }, false);
 
             drawer.canvas.addEventListener("touchcancel", function(e)
             {
                 window.onmouseup(e);
                 e.preventDefault();
+                scaling = false;
             }, false);
 
             window.onmouseup = function(e)
@@ -508,7 +550,7 @@ var
 
                 window.removeEventListener("mousemove", do_field_draw, true);
                 window.removeEventListener("mousemove", do_field_move, true);
-            }
+            };
 
             window.onmousemove = function(e)
             {
@@ -516,7 +558,7 @@ var
 
                 set_text($("label_mou"), coords.x + ", " + coords.y);
                 fix_width($("label_mou"));
-            }
+            };
 
             drawer.canvas.oncontextmenu = function(e)
             {
@@ -531,7 +573,7 @@ var
                 update_hud();
                 lazy_redraw(life.root);
                 return false;
-            }
+            };
 
             drawer.canvas.addEventListener("DOMMouseScroll", drawer.canvas.onmousewheel, false);
 
@@ -754,7 +796,7 @@ var
                     filereader.onload = function()
                     {
                         load(filereader.result);
-                    }
+                    };
                     filereader.readAsText(files[0]);
                 }
                 else
@@ -828,7 +870,7 @@ var
                 $("toolbar").style.color = drawer.background_color;
 
                 lazy_redraw(life.root);
-            }
+            };
 
             $("settings_reset").onclick = function()
             {
@@ -837,7 +879,7 @@ var
                 lazy_redraw(life.root);
 
                 hide_overlay();
-            }
+            };
 
             $("settings_button").onclick = function()
             {
@@ -903,7 +945,7 @@ var
                             life.set_step(0);
                             set_text($("label_step"), "1");
                         });
-                    }
+                    };
                 }
                 else
                 {
@@ -944,11 +986,11 @@ var
                                     life.set_step(0);
                                     set_text($("label_step"), "1");
                                 });
-                            }
+                            };
                         });
                     });
                 }
-            };
+            }
 
             if(false)
             {
@@ -972,32 +1014,35 @@ var
                             set_query(file);
                             show_alert(current_pattern);
                         });
-                    }
+                    };
 
                     examples_menu.appendChild(menu);
                 });
             }
         }
-    }
+    };
 
     document.addEventListener("DOMContentLoaded", window.onload, false);
 
 
-    function rle_link(id)
+    /** @param {*=} absolute */
+    function rle_link(id, absolute)
     {
-        if(location.hostname === "localhost")
+        if(!absolute || location.hostname === "localhost")
         {
             return pattern_path + id + ".rle";
         }
         else
         {
-            return location.protocol + "//copy.sh/life/" + pattern_path + id + ".rle";
+            let protocol = location.protocol === "http:" ? "http:" : "https:";
+            return protocol + "//copy.sh/life/" + pattern_path + id + ".rle";
         }
     }
 
     function view_link(id)
     {
-        return location.protocol + "//copy.sh/life/?pattern=" + id;
+        let protocol = location.protocol === "http:" ? "http:" : "https:";
+        return protocol + "//copy.sh/life/?pattern=" + id;
     }
 
     /**
@@ -1100,7 +1145,7 @@ var
 
             if(!pattern_source_url && pattern_id)
             {
-                pattern_source_url = rle_link(pattern_id);
+                pattern_source_url = rle_link(pattern_id, true);
             }
 
             if(!view_url && pattern_id)
@@ -1452,15 +1497,18 @@ var
      */
     function do_field_move(e)
     {
-        var dx = e.clientX - last_mouse_x,
-            dy = e.clientY - last_mouse_y;
+        if(last_mouse_x !== null)
+        {
+            var dx = e.clientX - last_mouse_x,
+                dy = e.clientY - last_mouse_y;
 
-        drawer.move(dx, dy);
+            drawer.move(dx, dy);
 
-        //lazy_redraw(life.root);
+            //lazy_redraw(life.root);
 
-        last_mouse_x = e.clientX;
-        last_mouse_y = e.clientY;
+            last_mouse_x = e.clientX;
+            last_mouse_y = e.clientY;
+        }
     }
 
     /*
@@ -1564,7 +1612,7 @@ var
         }
 
         return format(n + "");
-    };
+    }
 
 
     function debounce(func, timeout)
@@ -1582,9 +1630,8 @@ var
             {
                 func.apply(me, Array.prototype.slice.call(args));
             }, timeout);
-        }
+        };
     }
-
 
 })();
 
