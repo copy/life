@@ -502,18 +502,27 @@ var
                 if(scaling)
                 {
                     let new_distance = distance(e.touches);
+                    let changed = false;
                     const MIN_DISTANCE = 50;
 
                     while(last_distance - new_distance > MIN_DISTANCE)
                     {
                         last_distance -= MIN_DISTANCE;
                         drawer.zoom_centered(true);
+                        changed = true;
                     }
 
                     while(last_distance - new_distance < -MIN_DISTANCE)
                     {
                         last_distance += MIN_DISTANCE;
                         drawer.zoom_centered(false);
+                        changed = true;
+                    }
+
+                    if(changed)
+                    {
+                        update_hud();
+                        lazy_redraw(life.root);
                     }
                 }
                 else
