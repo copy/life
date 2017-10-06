@@ -497,7 +497,7 @@ LifeUniverse.prototype.get_level_from_bounds = function(bounds)
     }
 
     return Math.ceil(Math.log(max) / Math.LN2) + 1;
-}
+};
 
 LifeUniverse.prototype.field2tree = function(field, level)
 {
@@ -846,7 +846,7 @@ LifeUniverse.prototype.TreeNode = function(nw, ne, sw, se, id)
     {
         this.cache = this.quick_cache = nw;
     }*/
-}
+};
 
 LifeUniverse.prototype.node_set_bit = function(node, x, y, living)
 {
