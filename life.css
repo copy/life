@@ -117,18 +117,21 @@ html {
         border-width: 2px;
         border-radius: 15px;
         left: 50%;
-        margin-left: -400px; 
+        margin-left: -400px;
         width: 700px;
         padding: 50px;
     }
 }
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     #label_mou {
         display: none;
     }
     .button {
         padding: 0px 4px;
         xmargin-right: 1%;
+    }
+    .not_on_small_screen {
+        display: none;
     }
 }
 #pattern_name {
