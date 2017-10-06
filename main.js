@@ -1508,15 +1508,15 @@ var
     {
         if(last_mouse_x !== null)
         {
-            var dx = e.clientX - last_mouse_x,
-                dy = e.clientY - last_mouse_y;
+            let dx = Math.round(e.clientX - last_mouse_x);
+            let dy = Math.round(e.clientY - last_mouse_y);
 
             drawer.move(dx, dy);
 
             //lazy_redraw(life.root);
 
-            last_mouse_x = e.clientX;
-            last_mouse_y = e.clientY;
+            last_mouse_x += dx;
+            last_mouse_y += dy;
         }
     }
 
