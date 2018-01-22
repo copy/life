@@ -5,9 +5,9 @@ load("gemini.js"); // defines gemini_rle
 load("primer.js"); // defines primer_rle
 
 
-function assert(x, msg) 
-{ 
-    if(!x) 
+function assert(x, msg)
+{
+    if(!x)
         print("Assert failed: " + msg);
 }
 
@@ -76,7 +76,7 @@ load_and_run(
     [
         {
             name: "next generation",
-            f: function(life) { 
+            f: function(life) {
                 life.next_generation(true);
             },
             repetitions: 5
@@ -84,7 +84,7 @@ load_and_run(
 
         {
             name: "16 generations",
-            f: function(life) { 
+            f: function(life) {
                 life.set_step(4); // 16 generations at once
 
                 for(var i = 0; i < 1; i++)
@@ -94,8 +94,8 @@ load_and_run(
 
         //{
         //    name: "4096 generations",
-        //    f: function(life) { 
-        //        life.set_step(12); 
+        //    f: function(life) {
+        //        life.set_step(12);
 
         //        life.next_generation(true);
         //    },
@@ -110,7 +110,7 @@ load_and_run(
     [
         {
             name: "next generation",
-            f: function(life) { 
+            f: function(life) {
                 life.next_generation(true);
             },
             repetitions: 5000
@@ -118,7 +118,7 @@ load_and_run(
 
         {
             name: "256 generations",
-            f: function(life) { 
+            f: function(life) {
                 life.set_step(8); // 256 generations at once
 
                 for(var i = 0; i < 500; i++)
@@ -128,7 +128,7 @@ load_and_run(
 
         {
             name: "q generation",
-            f: function(life) { 
+            f: function(life) {
 
                 life.next_generation(false);
             },

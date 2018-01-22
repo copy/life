@@ -3,7 +3,6 @@
 /** @constructor */
 function LifeCanvasDrawer()
 {
-
     var
 
         // where is the viewport in pixels, from 0,0
@@ -356,4 +355,3 @@ function LifeCanvasDrawer()
         }
     }
 }
-
