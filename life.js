@@ -173,6 +173,16 @@ LifeUniverse.prototype.get_bit = function(x, y)
 
 LifeUniverse.prototype.get_root_bounds = function()
 {
+    if(this.root.population === 0)
+    {
+        return {
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+        };
+    }
+
     var bounds = {
             top: Infinity,
             left: Infinity,
