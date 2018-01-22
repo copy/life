@@ -128,7 +128,6 @@ html {
     }
     .button {
         padding: 0px 4px;
-        xmargin-right: 1%;
     }
     .not_on_small_screen {
         display: none;
