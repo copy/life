@@ -39,7 +39,7 @@ var formats = (function()
             result = parse_comments(pattern_string, "#"),
             x = 0, y = 0,
             header_match,
-            expr = /([a-zA-Z]+) *= *([a-zA-Z0-9\/]+)/g,
+            expr = /([a-zA-Z]+) *= *([a-zA-Z0-9\/()]+)/g,
             match;
 
         pattern_string = result.pattern_string;
@@ -71,6 +71,7 @@ var formats = (function()
                     break;
 
                 case "alpha":
+                case "color":
                     break;
 
                 default:
@@ -375,7 +376,7 @@ var formats = (function()
         {
             return parse_plaintext(pattern_text);
         }
-        else if(/^(?:#[^\n]*\n)*\n*(?:(?:x|y|rule) *= *[a-z0-9\/]+,? *)+\s*\n/i.test(pattern_text))
+        else if(/^(?:#[^\n]*\n)*\n*(?:(?:x|y|rule|color|alpha) *= *[a-z0-9\/(),]+,? *)+\s*\n/i.test(pattern_text))
         {
             return parse_rle(pattern_text);
         }
