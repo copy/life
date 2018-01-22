@@ -28,7 +28,8 @@ var formats = (function()
         //parse_plaintext: parse_plaintext,
         parse_pattern: parse_pattern,
         rule2str: rule2str,
-        parse_rule: parse_rule
+        parse_rule: parse_rule,
+        generate_rle: generate_rle,
     };
 
 
@@ -420,6 +421,14 @@ var formats = (function()
         return rule;
     }
 
+    function rule2str_rle(rule_s, rule_b)
+    {
+        let rule = formats.rule2str(rule_s, rule_b);
+        rule = rule.split("/");
+        rule = `B${rule[1]}/S${rule[0]}`;
+        return rule;
+    }
+
     function parse_rule_rle(rule_str, survived)
     {
         rule_str = rule_str.split("/");
@@ -465,5 +474,102 @@ var formats = (function()
     function trim(s)
     {
         return s.replace(/^\s+|\s+$/g, '');
+    }
+
+    function* rle_generator(life, bounds)
+    {
+        function make(length, is_empty)
+        {
+            console.assert(length >= 0);
+
+            if(length === 0)
+            {
+                return "";
+            }
+
+            let length_tag = "";
+
+            if(length > 1)
+            {
+                length_tag = String(length);
+            }
+
+            return length_tag + (is_empty ? "b" : "o");
+        }
+
+        for(let y = bounds.top; y <= bounds.bottom; y++)
+        {
+            let state_is_empty = true;
+            let run_start = bounds.left;
+
+            for(let x = bounds.left; x <= bounds.right; x++)
+            {
+                const is_empty = !life.get_bit(x, y);
+                const run_length = x - run_start;
+                console.assert(run_length >= 0);
+
+                if(state_is_empty !== is_empty)
+                {
+                    yield make(run_length, state_is_empty);
+                    run_start = x;
+                    state_is_empty = is_empty;
+                }
+            }
+
+            if(!state_is_empty)
+            {
+                const run_length = bounds.right + 1 - run_start;
+                yield make(run_length, state_is_empty);
+            }
+
+            if(y !== bounds.bottom)
+            {
+                yield "$";
+            }
+        }
+
+        yield "!";
+    }
+
+    // implemented according to http://www.conwaylife.com/w/index.php?title=Run_Length_Encoded
+    function generate_rle(life, name, comments)
+    {
+        const lines = [];
+        const MAX_LINE_LENGTH = 70;
+
+        if(name)
+        {
+            lines.push("#N " + name);
+        }
+
+        lines.push.apply(lines, comments.map(c => "#C " + c));
+
+        const root = life.root;
+        const bounds = life.get_root_bounds();
+
+        {
+            const width = bounds.right - bounds.left + 1;
+            const height = bounds.bottom - bounds.top + 1;
+            const rule = rule2str_rle(life.rule_s, life.rule_b);
+            lines.push(`x = ${width}, y = ${height}, rule = ${rule}`);
+        }
+
+        let current_line = "";
+
+        for(let fragment of rle_generator(life, bounds))
+        {
+            if(current_line.length + fragment.length > MAX_LINE_LENGTH)
+            {
+                console.assert(fragment.length < MAX_LINE_LENGTH);
+                lines.push(current_line);
+                current_line = "";
+            }
+
+            current_line += fragment;
+        }
+
+        lines.push(current_line);
+
+        return lines.join("\n");
     }
 })();
