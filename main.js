@@ -150,7 +150,7 @@ var
         }
 
         let pattern_parameter = parameters["pattern"];
-        let pattern_parameter_looks_good = pattern_parameter && /^[a-z0-9_\.\-]+$/.test(pattern_parameter);
+        let pattern_parameter_looks_good = pattern_parameter && /^[a-z0-9_\.\-]+$/i.test(pattern_parameter);
 
         let gist = parameters["gist"];
         if(gist && /^[a-fA-F0-9]+$/.test(gist))
