@@ -59,11 +59,21 @@ for(let file of files)
     life.make_center(pattern.field_x, pattern.field_y, bounds);
     life.setup_field(pattern.field_x, pattern.field_y, bounds);
 
+    if(pattern.rule_s && pattern.rule_b)
+    {
+        life.set_rules(pattern.rule_s, pattern.rule_b);
+    }
+
     const generated_rle = formats.generate_rle(life, undefined,
         ["test comment", "another test comment"]);
     const new_pattern = formats.parse_pattern(generated_rle);
     console.assert(!new_pattern.error);
-    console.assert(new_pattern.rule === pattern.rule);
+
+    if(pattern.rule_s && pattern.rule_b)
+    {
+        console.assert(new_pattern.rule_s === pattern.rule_s);
+        console.assert(new_pattern.rule_b === pattern.rule_b);
+    }
 
     const new_life = new LifeUniverse();
     const new_bounds = new_life.get_bounds(new_pattern.field_x, new_pattern.field_y);
