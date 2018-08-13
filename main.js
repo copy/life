@@ -431,12 +431,15 @@ var
             {
                 if(e.which === 3 || e.which === 2)
                 {
-                    var coords = drawer.pixel2cell(e.clientX, e.clientY);
+                    if(drawer.cell_width >= 1) // only at reasonable zoom levels
+                    {
+                        var coords = drawer.pixel2cell(e.clientX, e.clientY);
 
-                    mouse_set = !life.get_bit(coords.x, coords.y);
+                        mouse_set = !life.get_bit(coords.x, coords.y);
 
-                    window.addEventListener("mousemove", do_field_draw, true);
-                    do_field_draw(e);
+                        window.addEventListener("mousemove", do_field_draw, true);
+                        do_field_draw(e);
+                    }
                 }
                 else if(e.which === 1)
                 {
