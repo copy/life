@@ -55,7 +55,6 @@ for(let file of files)
 
     const life = new LifeUniverse();
     const bounds = life.get_bounds(pattern.field_x, pattern.field_y);
-    life.clear_pattern();
     life.make_center(pattern.field_x, pattern.field_y, bounds);
     life.setup_field(pattern.field_x, pattern.field_y, bounds);
 

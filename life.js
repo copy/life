@@ -94,6 +94,8 @@ function LifeUniverse()
         population: 1,
         level: 0,
     };
+
+    this.clear_pattern();
 }
 
 LifeUniverse.prototype.pow2 = function(x)

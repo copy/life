@@ -1,6 +1,5 @@
 /*
  * TODO:
- * - export patterns
  * - remember settings in the hash or offer link
  * - life 1.05 is currently broken
  * - better mobile handling: allow drawing
@@ -8,7 +7,6 @@
  * - make screenshots, maybe gifs
  * - allow people to upload patterns
  * - maybe more than 2 states (non-life)
- * - implement mcell import for huge patterns
  * - fail-safe http requests and pattern parsing
  * - restore meta life
  * - error when zooming while pattern is loading
@@ -1043,14 +1041,19 @@ var
     /** @param {*=} absolute */
     function rle_link(id, absolute)
     {
+        if(!id.endsWith(".mc"))
+        {
+            id = id + ".rle";
+        }
+
         if(!absolute || location.hostname === "localhost")
         {
-            return pattern_path + id + ".rle";
+            return pattern_path + id;
         }
         else
         {
             let protocol = location.protocol === "http:" ? "http:" : "https:";
-            return protocol + "//copy.sh/life/" + pattern_path + id + ".rle";
+            return protocol + "//copy.sh/life/" + pattern_path + id;
         }
     }
 
@@ -1109,18 +1112,29 @@ var
      */
     function setup_pattern(pattern_text, pattern_id, pattern_source_url, view_url, title)
     {
-        var result = formats.parse_pattern(pattern_text.trim());
+        const is_mc = pattern_text.startsWith("[M2]");
 
-        if(result.error)
+        if(!is_mc)
         {
-            set_text($("import_info"), result.error);
-            return;
+            var result = formats.parse_pattern(pattern_text.trim());
+
+            if(result.error)
+            {
+                set_text($("import_info"), result.error);
+                return;
+            }
+        }
+        else
+        {
+            result = {
+                comment: "",
+                urls: [],
+                short_comment: "",
+            };
         }
 
         stop(function()
         {
-            var bounds = life.get_bounds(result.field_x, result.field_y);
-
             if(title && !result.title)
             {
                 result.title = title;
@@ -1132,8 +1146,20 @@ var
             }
 
             life.clear_pattern();
-            life.make_center(result.field_x, result.field_y, bounds);
-            life.setup_field(result.field_x, result.field_y, bounds);
+
+            if(!is_mc)
+            {
+                var bounds = life.get_bounds(result.field_x, result.field_y);
+                life.make_center(result.field_x, result.field_y, bounds);
+                life.setup_field(result.field_x, result.field_y, bounds);
+            }
+            else
+            {
+                result = load_macrocell(life, pattern_text);
+                const step = 15;
+                life.set_step(step);
+                set_text($("label_step"), Math.pow(2, step));
+            }
 
             life.save_rewind_state();
 

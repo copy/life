@@ -29,6 +29,7 @@ var formats = (function()
         parse_pattern: parse_pattern,
         rule2str: rule2str,
         parse_rule: parse_rule,
+        parse_comments: parse_comments,
         generate_rle: generate_rle,
     };
 
@@ -335,7 +336,7 @@ var formats = (function()
 
             if(cont)
             {
-                if(/^(?:http:\/\/|www\.)[a-z0-9]/i.test(line))
+                if(/^(?:https?:\/\/|www\.)[a-z0-9]/i.test(line))
                 {
                     line = trim(line);
 
