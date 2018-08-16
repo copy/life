@@ -8,6 +8,7 @@ const path = require("path");
 const EXAMPLES_DIR = "examples";
 
 vm.runInThisContext(fs.readFileSync("./formats.js"), { filename: "formats.js" });
+vm.runInThisContext(fs.readFileSync("./macrocell.js"), { filename: "macrocell.js" });
 vm.runInThisContext(fs.readFileSync("./life.js"), { filename: "life.js" });
 
 const SLOW_PATTERNS = [
@@ -34,17 +35,34 @@ const SLOW_PATTERNS = [
     "universalturingmachine.rle",
     "utm.rle",
     "jaws.rle",
+    "constructor-memory-loop.rle",
+    "7-in-a-row-Cordership-V-gun.rle",
+    "H-to-C.rle",
+    "c4-sideways-rake.rle",
+    "constructor-memory-tape.rle",
+    "high-bandwidth-telegraph.rle",
+    "slow-salvo-MWSS-oscillator.rle",
+    "switch-engine-ping-pong.rle",
+    "single-channel-spiral-growth.rle",
+    "traffic-lights-extruder.rle",
 ];
 
 let files = fs.readdirSync(EXAMPLES_DIR);
-files = files.filter(f => f.endsWith(".rle"));
-files = files.filter(f => !SLOW_PATTERNS.includes(f));
-files = files.map(f => path.join(EXAMPLES_DIR, f));
-
+files = files.filter(f => f.endsWith(".rle") || f.endsWith(".mc"));
 
 for(let file of files)
 {
-    const rle = fs.readFileSync(file).toString("utf8");
+    const is_mc = file.endsWith(".mc");
+
+    const life = new LifeUniverse();
+    const rle = fs.readFileSync(path.join(EXAMPLES_DIR, file)).toString("utf8");
+
+    if(is_mc)
+    {
+        load_macrocell(life, rle);
+        continue;
+    }
+
     const pattern = formats.parse_pattern(rle);
 
     if(pattern.error)
@@ -53,7 +71,6 @@ for(let file of files)
         continue;
     }
 
-    const life = new LifeUniverse();
     const bounds = life.get_bounds(pattern.field_x, pattern.field_y);
     life.make_center(pattern.field_x, pattern.field_y, bounds);
     life.setup_field(pattern.field_x, pattern.field_y, bounds);
@@ -61,6 +78,11 @@ for(let file of files)
     if(pattern.rule_s && pattern.rule_b)
     {
         life.set_rules(pattern.rule_s, pattern.rule_b);
+    }
+
+    if(SLOW_PATTERNS.includes(file))
+    {
+        continue;
     }
 
     const generated_rle = formats.generate_rle(life, undefined,
