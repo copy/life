@@ -286,14 +286,14 @@ var formats = (function()
 
             if(advanced)
             {
-                line = line.substr(1);
+                line = line.substr(1).trim();
 
                 switch(pattern_string[1])
                 {
                     case "N":
                         if(line)
                         {
-                            result.title = trim(line);
+                            result.title = line;
                         }
                         else
                         {
@@ -306,12 +306,12 @@ var formats = (function()
                     case "D":
                         if(!result.short_comment)
                         {
-                            result.short_comment = trim(line);
+                            result.short_comment = line;
                         }
                         break;
 
                     case "O":
-                        result.author = trim(line);
+                        result.author = line;
                         break;
 
                     case "R":
@@ -329,17 +329,10 @@ var formats = (function()
                 }
             }
 
-            if(line[0] === " ")
-            {
-                line = line.substr(1);
-            }
-
             if(cont)
             {
                 if(/^(?:https?:\/\/|www\.)[a-z0-9]/i.test(line))
                 {
-                    line = trim(line);
-
                     if(line.substr(0, 4) !== "http")
                     {
                         line = "http://" + line;
@@ -366,6 +359,7 @@ var formats = (function()
         }
 
         result.pattern_string = pattern_string;
+        result.comment = result.comment.trim();
 
         return result;
     }
@@ -470,11 +464,6 @@ var formats = (function()
         }
 
         return rule;
-    }
-
-    function trim(s)
-    {
-        return s.replace(/^\s+|\s+$/g, '');
     }
 
     function* rle_generator(life, bounds)
