@@ -27,6 +27,8 @@ function LifeCanvasDrawer()
 
         drawer = this;
 
+    var pixel_ratio = 1;
+
 
     this.cell_color = null;
     this.background_color = null;
@@ -38,7 +40,7 @@ function LifeCanvasDrawer()
     this.init = init;
     this.redraw = redraw;
     this.move = move;
-    this.zoom = zoom;
+    this.zoom_at = zoom_at;
     this.zoom_centered = zoom_centered;
     this.fit_bounds = fit_bounds;
     this.set_size = set_size;
@@ -70,10 +72,29 @@ function LifeCanvasDrawer()
     {
         if(width !== canvas_width || height !== canvas_height)
         {
-            canvas_width = canvas.width = width;
-            canvas_height = canvas.height = height;
+            if(true)
+            {
+                canvas.style.width = width + "px";
+                canvas.style.height = height + "px";
+                var factor = window.devicePixelRatio;
+            }
+            else
+            {
+                var factor = 1;
+            }
 
-            image_data = context.createImageData(width, height);
+            pixel_ratio = factor;
+
+            // Math.round is important here: Neither floor nor ceil produce
+            // sharp pixels (test by taking a screenshot at 1:1 zoom and
+            // inspecting in an image editor)
+            canvas.width = Math.round(width * factor);
+            canvas.height = Math.round(height * factor);
+
+            canvas_width = canvas.width;
+            canvas_height = canvas.height;
+
+            image_data = context.createImageData(canvas_width, canvas_height);
             image_data_data = new Int32Array(image_data.data.buffer);
 
             for(var i = 0; i < width * height; i++)
@@ -220,6 +241,15 @@ function LifeCanvasDrawer()
         }
     }
 
+    /**
+     * @param {number} center_x
+     * @param {number} center_y
+     */
+    function zoom_at(out, center_x, center_y)
+    {
+        zoom(out, center_x * pixel_ratio, center_y * pixel_ratio);
+    }
+
     function zoom_centered(out)
     {
         zoom(out, canvas_width >> 1, canvas_height >> 1);
@@ -249,8 +279,8 @@ function LifeCanvasDrawer()
 
     function move(dx, dy)
     {
-        canvas_offset_x += dx;
-        canvas_offset_y += dy;
+        canvas_offset_x += Math.round(dx * pixel_ratio);
+        canvas_offset_y += Math.round(dy * pixel_ratio);
 
         // This code is faster for patterns with a huge density (for instance, spacefiller)
         // It causes jitter for all other patterns though, that's why the above version is preferred
@@ -329,8 +359,8 @@ function LifeCanvasDrawer()
     function pixel2cell(x, y)
     {
         return {
-            x : Math.floor((x - canvas_offset_x + drawer.border_width / 2) / drawer.cell_width),
-            y : Math.floor((y - canvas_offset_y + drawer.border_width / 2) / drawer.cell_width)
+            x : Math.floor((x * pixel_ratio - canvas_offset_x + drawer.border_width / 2) / drawer.cell_width),
+            y : Math.floor((y * pixel_ratio - canvas_offset_y + drawer.border_width / 2) / drawer.cell_width)
         };
     }
 

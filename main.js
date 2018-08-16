@@ -420,7 +420,7 @@ var
 
             //drawer.canvas.ondblclick = function(e)
             //{
-            //    drawer.zoom(false, e.clientX, e.clientY);
+            //    drawer.zoom_at(false, e.clientX, e.clientY);
             //    update_hud();
             //    lazy_redraw(life.root);
             //    return false;
@@ -578,7 +578,7 @@ var
             drawer.canvas.onmousewheel = function(e)
             {
                 e.preventDefault();
-                drawer.zoom((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
+                drawer.zoom_at((e.wheelDelta || -e.detail) < 0, e.clientX, e.clientY);
 
                 update_hud();
                 lazy_redraw(life.root);
