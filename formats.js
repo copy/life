@@ -141,7 +141,7 @@ var formats = (function()
                 {
                     x += count;
                 }
-                else if(chr === 111) // o
+                else if(chr >= 65 && chr <= 90 || chr >= 97 && chr < 122) // A-Za-z
                 {
                     if(alive_count + count > field_x.length)
                     {

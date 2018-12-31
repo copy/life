@@ -47,6 +47,11 @@ const SLOW_PATTERNS = [
     "traffic-lights-extruder.rle",
 ];
 
+const POPULATIONS_AFTER_PARSE = {
+    // reported by Dave Greene: Uses non-'o' characters for alive cells
+    "foureatershasslingfourbookends_synth.rle": 2074,
+};
+
 let files = fs.readdirSync(EXAMPLES_DIR);
 files = files.filter(f => f.endsWith(".rle") || f.endsWith(".mc"));
 
@@ -78,6 +83,16 @@ for(let file of files)
     if(pattern.rule_s && pattern.rule_b)
     {
         life.set_rules(pattern.rule_s, pattern.rule_b);
+    }
+
+    const expected_population = POPULATIONS_AFTER_PARSE[file];
+    if(expected_population)
+    {
+        if(expected_population !== life.root.population)
+        {
+            console.error(`File ${file}: Expected population of ${expected_population}, got ${life.root.population}`);
+            continue;
+        }
     }
 
     if(SLOW_PATTERNS.includes(file))
