@@ -23,8 +23,6 @@ html {
 #toolbar > div {
     float: right;
 }
-#toolbar > table {
-}
 #statusbar > div {
     float: right;
     border-left: 1px solid #ccc;
