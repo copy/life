@@ -834,6 +834,57 @@ var
                 download(rle, "pattern.rle");
             };
 
+            $("randomize_button").onclick = function()
+            {
+                $("randomize_density").value = 0.5;
+                $("randomize_width").value = 200;
+                $("randomize_height").value = 200;
+
+                show_overlay("randomize_dialog");
+            };
+
+            $("randomize_submit").onclick = function()
+            {
+                const density = Math.max(0, Math.min(1, +$("randomize_density").value)) || 0.5;
+                const width = Math.max(0, +$("randomize_width").value) || 200;
+                const height = Math.max(0, +$("randomize_height").value) || 200;
+
+                stop(function()
+                    {
+                        life.clear_pattern();
+
+                        // Note: Not exact density because some points may be repeated
+                        const field_x = new Int32Array(Math.round(width * height * density));
+                        const field_y = new Int32Array(field_x.length);
+
+                        for(let i = 0; i < field_x.length; i++) {
+                            field_x[i] = Math.random() * width;
+                            field_y[i] = Math.random() * height;
+                        }
+
+                        var bounds = life.get_bounds(field_x, field_y);
+                        life.make_center(field_x, field_y, bounds);
+                        life.setup_field(field_x, field_y, bounds);
+
+                        life.save_rewind_state();
+
+                        hide_overlay();
+
+                        fit_pattern();
+                        lazy_redraw(life.root);
+
+                        update_hud();
+
+                        set_text($("pattern_name"), "Random pattern");
+                        set_title("Random pattern");
+
+                        current_pattern = {
+                            title : "Random pattern",
+                            comment : "",
+                        };
+                    });
+            };
+
             $("settings_submit").onclick = function()
             {
                 var new_rule_s,
@@ -913,6 +964,7 @@ var
             $("settings_abort").onclick =
                 $("pattern_close").onclick =
                 $("alert_close").onclick =
+                $("randomize_abort").onclick =
                 $("about_close").onclick = function()
             {
                 hide_overlay();

@@ -18,8 +18,8 @@
     <div class="button" id="about_button">About</div>
     <div class="menu" id="examples_menu">
         <div id="pattern_button">Patterns</div>
-        <!--<div id="more_button">More ...</div>-->
     </div>
+    <div id="randomize_button" class="button">Randomize</div>
     <div id="export_button" class="button">Export</div>
     <div id="import_button" class="button">Import</div>
     <div class="button" id="settings_button">Settings</div>
@@ -116,6 +116,37 @@
         <br>
         <br>
         <span class="button2" id="about_close" style="display: none">Ok</span>
+    </div>
+    <div id="randomize_dialog" style="display: none;">
+        <h2>Random Pattern</h2>
+        <div class="left">
+            Width
+        </div>
+        <div class="right">
+            <input type="number" min="1" id="randomize_width" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Height
+        </div>
+        <div class="right">
+            <input type="number" min="1" id="randomize_height" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <div class="left">
+            Density
+        </div>
+        <div class="right">
+            <input type="number" id="randomize_density" min="0" max="1" step="0.1" style="width: 60px">
+        </div>
+        <br class="clear">
+        <br>
+        <br>
+        <br>
+        <span id="randomize_submit" class="button2">Randomize</span>
+        <span id="randomize_abort" class="button2">Abort</span>
     </div>
     <div id="import_dialog" style="display: none;">
         <h2>Import Pattern</h2>
