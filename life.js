@@ -804,12 +804,9 @@ LifeUniverse.prototype.set_step = function(step)
     {
         this.step = step;
 
-        if(this.generation > 0) {
-            // if a step has occured, caches need to be cleared
-            this.uncache(false);
-            this.empty_tree_cache = [];
-            this.level2_cache = Array(0x10000);
-        }
+        this.uncache(false);
+        this.empty_tree_cache = [];
+        this.level2_cache = Array(0x10000);
     }
 };
 
@@ -820,11 +817,9 @@ LifeUniverse.prototype.set_rules = function(s, b)
         this.rule_s = s;
         this.rule_b = b;
 
-        if(this.generation > 0) {
-            this.uncache(true);
-            this.empty_tree_cache = [];
-            this.level2_cache = Array(0x10000);
-        }
+        this.uncache(true);
+        this.empty_tree_cache = [];
+        this.level2_cache = Array(0x10000);
     }
 };
 
@@ -1158,5 +1153,3 @@ LifeUniverse.prototype.node_get_boundary = function(node, left, top, find_mask, 
         this.node_get_boundary(node.se, left + offset, top + offset, find_se, boundary);
     }
 };
-
-
