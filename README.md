@@ -11,6 +11,6 @@ The whole thing is written in Javascript, using the canvas tag.
 Links
 -
 
-- Online version: http://copy.sh/life/
-- List of examples: http://copy.sh/life/examples/
+- Online version: https://copy.sh/life/
+- List of examples: https://copy.sh/life/examples/
 - Source of examples (direct link): http://www.conwaylife.com/patterns/all.zip
