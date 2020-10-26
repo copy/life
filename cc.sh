@@ -15,3 +15,4 @@ java -jar ~/www/v86/closure-compiler/compiler.jar \
     --js draw.js life.js formats.js macrocell.js main.js
 
 ls -l $FILENAME
+this is ram for new project this is project purpose
